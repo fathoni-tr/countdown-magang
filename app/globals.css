@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f6f7f9;
+  --fg: #11161c;
+  --dim: #5a6572;
+  --card: #ffffff;
+  --accent: #1d4ed8;
+  --line: #dee3e9;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b0f14;
+  --fg: #eef2f6;
+  --dim: #94a1ae;
+  --card: #141b23;
+  --accent: #6d9bff;
+  --line: #232d38;
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --font-sans: var(--font-plex);
+  --font-display: var(--font-audiowide);
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* Flip clock diatur lewat variabel --fcc-* miliknya sendiri; nama kelas dist
+   di-hash jadi tidak bisa ditarget. Skala ke viewport supaya mengisi layar. */
+.flip-card {
+  --fcc-digit-block-width: clamp(2.3rem, 10vw, 11.5rem);
+  --fcc-digit-block-height: clamp(3.4rem, 15vw, 17rem);
+  --fcc-digit-font-size: clamp(1.9rem, 8.4vw, 9.5rem);
+  --fcc-digit-block-radius: 0.09em;
+  --fcc-digit-block-spacing: clamp(0.15rem, 0.6vw, 0.6rem);
+  --fcc-spacing: clamp(0.5rem, 2vw, 2.2rem);
+  --fcc-label-font-size: clamp(0.6rem, 1.3vw, 1.1rem);
+  --fcc-separator-size: clamp(0.25rem, 0.9vw, 0.8rem);
+  --fcc-background: #ffffff;
+  --fcc-digit-color: #0b0f14;
+  --fcc-divider-color: rgb(0 0 0 / 0.12);
+  --fcc-label-color: var(--dim);
+  --fcc-separator-color: var(--fg);
+  --fcc-shadow: 0 10px 30px rgb(0 0 0 / 0.18);
+  display: flex;
+  justify-content: center;
+}
+
+:root[data-theme="dark"] .flip-card {
+  --fcc-background: #141b23;
+  --fcc-digit-color: #eef2f6;
+  --fcc-divider-color: rgb(255 255 255 / 0.12);
+  --fcc-shadow: 0 10px 30px rgb(0 0 0 / 0.5);
+}
+
+/* Bentuk reveal digambar WAAPI di toggler; matikan crossfade default. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Lapisan baru harus di atas yang lama agar clip-path-nya terlihat menyingkap. */
+::view-transition-new(root) {
+  z-index: 1;
+}
+
+::view-transition-old(root) {
+  z-index: 0;
+}
