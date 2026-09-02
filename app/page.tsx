@@ -1,4 +1,5 @@
 import Countdown from "@/components/Countdown";
+import QuoteTicker from "@/components/QuoteTicker";
 import { Globe } from "@/components/Globe";
 import InfoBar from "@/components/InfoBar";
 import { AnimatedThemeToggler } from "@/components/magicui/animated-theme-toggler";
@@ -26,6 +27,9 @@ export default function Page() {
       </p>
       <div className="relative">
         <Countdown />
+      </div>
+      <div className="relative mt-8">
+        <QuoteTicker />
       </div>
       <div className="relative">
         <InfoBar />

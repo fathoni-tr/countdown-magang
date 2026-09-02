@@ -5,6 +5,10 @@ export const CONFIG = {
   INTERNSHIP_START: null as { y: number; m: number; d: number } | null,
   WORK_START: { hour: 7, minute: 30 },
   WORK_END: { hour: 16, minute: 0 },
+  // Istirahat siang. ponytail: hanya memengaruhi pilihan kalimat, bukan hitungan
+  // jam kerja. Kurangi dari workRemainingMs kalau nanti mau dihitung bersih.
+  BREAK_START: { hour: 12, minute: 0 },
+  BREAK_END: { hour: 13, minute: 0 },
   WORK_DAYS: [1, 2, 3, 4, 5],
   CONFETTI_GRACE_MINUTES: 60,
   SHOW_SECONDARY_BEFORE_WORK_START: true,

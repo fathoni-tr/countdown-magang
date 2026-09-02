@@ -33,14 +33,19 @@ body {
 /* Flip clock diatur lewat variabel --fcc-* miliknya sendiri; nama kelas dist
    di-hash jadi tidak bisa ditarget. Skala ke viewport supaya mengisi layar. */
 .flip-card {
-  --fcc-digit-block-width: clamp(2.3rem, 10vw, 11.5rem);
-  --fcc-digit-block-height: clamp(3.4rem, 15vw, 17rem);
-  --fcc-digit-font-size: clamp(1.9rem, 8.4vw, 9.5rem);
+  /* ponytail: satu unit --w, sisanya proporsi. Total lebar jam = 10.8 x --w
+     (9 digit + 5 spasi digit + 6 gap grup + 3 separator) saat hari 3 digit;
+     dibagi 11 = margin aman. Ganti 11 -> 9.7 kalau hari sudah 2 digit dan
+     mau digit lebih besar. */
+  --w: min(11.5rem, (100vw - 2.5rem) / 11);
+  --fcc-digit-block-width: var(--w);
+  --fcc-digit-block-height: calc(var(--w) * 1.45);
+  --fcc-digit-font-size: calc(var(--w) * 0.82);
   --fcc-digit-block-radius: 0.09em;
-  --fcc-digit-block-spacing: clamp(0.15rem, 0.6vw, 0.6rem);
-  --fcc-spacing: clamp(0.5rem, 2vw, 2.2rem);
-  --fcc-label-font-size: clamp(0.6rem, 1.3vw, 1.1rem);
-  --fcc-separator-size: clamp(0.25rem, 0.9vw, 0.8rem);
+  --fcc-digit-block-spacing: calc(var(--w) * 0.06);
+  --fcc-spacing: calc(var(--w) * 0.2);
+  --fcc-label-font-size: clamp(0.55rem, var(--w) * 0.17, 1.1rem);
+  --fcc-separator-size: calc(var(--w) * 0.1);
   --fcc-background: #ffffff;
   --fcc-digit-color: #0b0f14;
   --fcc-divider-color: rgb(0 0 0 / 0.12);
@@ -72,4 +77,33 @@ body {
 
 ::view-transition-old(root) {
   z-index: 0;
+}
+
+/* TextAnimate: animation-name/-delay/-duration disuntik inline per potongan. */
+.ta-seg {
+  display: inline-block;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@keyframes ta-blur-in-up {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(0.45em);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+
+@keyframes ta-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

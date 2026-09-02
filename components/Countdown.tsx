@@ -6,8 +6,25 @@ import "@leenguyen/react-flip-clock-countdown/dist/index.css";
 import { CONFIG, END_TARGET } from "@/lib/config";
 import { checkConfetti } from "@/lib/confetti";
 import { holidayOn, loadHolidays } from "@/lib/holidays";
-import { getSessionStatus, nextSessionStart, type Status } from "@/lib/schedule";
+import {
+  getSessionStatus,
+  nextSessionStart,
+  workRemainingMs,
+  type Status,
+} from "@/lib/schedule";
+import { store } from "@/lib/storage";
 import { DAY_NAMES, addDays, atTime, pad, parts, startOfDay, ymd } from "@/lib/time";
+import { cn } from "@/lib/utils";
+
+type Mode = "all" | "work";
+const MODE_KEY = "count-mode";
+
+const Clock = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="size-5" aria-hidden>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3.5 2" />
+  </svg>
+);
 
 const INTERNSHIP_START = CONFIG.INTERNSHIP_START
   ? new Date(CONFIG.INTERNSHIP_START.y, CONFIG.INTERNSHIP_START.m, CONFIG.INTERNSHIP_START.d)
@@ -23,7 +40,7 @@ function secondaryLabel(now: Date, target: Date): string {
     if (h) skipped.push(h.name);
   }
   const jam = `${pad(CONFIG.WORK_START.hour)}.${pad(CONFIG.WORK_START.minute)}`;
-  return `Mulai lagi ${hari} ${jam}${skipped.length ? ` — libur ${skipped.join(", ")}` : ""}`;
+  return `Mulai lagi ${hari} ${jam}${skipped.length ? `, libur ${skipped.join(", ")}` : ""}`;
 }
 
 export default function Countdown() {
@@ -31,6 +48,12 @@ export default function Countdown() {
   const [status, setStatus] = useState<Status>("IN_SESSION");
   const [secLabel, setSecLabel] = useState("");
   const [showSecondary, setShowSecondary] = useState(false);
+  // Pilihan per-perangkat, bertahan antar kunjungan (T-17: localStorage boleh gagal).
+  const [mode, setMode] = useState<Mode>(() => (store.get(MODE_KEY) === "work" ? "work" : "all"));
+  // Mode hari kerja di luar jam kerja: jam utama pindah ke "mulai lagi", sisa
+  // waktu kerja turun jadi angka kecil yang beku.
+  const [swapped, setSwapped] = useState(false);
+  const [mainTo, setMainTo] = useState(+END_TARGET);
 
   const sd = useRef<HTMLSpanElement>(null);
   const sdWrap = useRef<HTMLDivElement>(null);
@@ -46,7 +69,7 @@ export default function Countdown() {
     setMounted(true);
     let lastMin = -1;
 
-    // ponytail: transisi warna kartu sebagai ganti partikel saat reduced-motion.
+    // ponytail: transisi warna kartu, jalan barengan confetti.
     const flash = () => {
       const el = card.current;
       if (!el) return;
@@ -71,8 +94,13 @@ export default function Countdown() {
       const show = !!target && target < END_TARGET;
       setShowSecondary((prev) => (prev === show ? prev : show));
 
+      const swap = mode === "work" && show;
+      setSwapped((prev) => (prev === swap ? prev : swap));
+      const to = swap && target ? +target : +END_TARGET;
+      setMainTo((prev) => (prev === to ? prev : to));
+
       if (show && target) {
-        const q = parts(+target - +now);
+        const q = swap ? parts(workRemainingMs(now)) : parts(+target - +now);
         if (sd.current) sd.current.textContent = String(q.d);
         if (sdWrap.current) sdWrap.current.hidden = q.d === 0;
         if (sh.current) sh.current.textContent = pad(q.h);
@@ -113,7 +141,14 @@ export default function Countdown() {
       clearInterval(id);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, []);
+  }, [mode]);
+
+  const toggleMode = () =>
+    setMode((m) => {
+      const next: Mode = m === "all" ? "work" : "all";
+      store.set(MODE_KEY, next);
+      return next;
+    });
 
   if (!mounted) {
     // Placeholder kerangka: nilai waktu tidak boleh dirender di server.
@@ -124,6 +159,26 @@ export default function Countdown() {
 
   return (
     <>
+      <button
+        type="button"
+        onClick={toggleMode}
+        aria-pressed={mode === "work"}
+        aria-label={
+          mode === "work"
+            ? "Mode hari kerja. Ganti ke hitung semua hari"
+            : "Mode semua hari. Ganti ke hitung hari kerja saja"
+        }
+        title={mode === "work" ? "Hitung hari kerja saja" : "Hitung semua hari"}
+        className={cn(
+          "fixed left-4 top-4 z-10 grid size-10 place-items-center rounded-full border bg-[var(--card)] transition-colors hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]",
+          mode === "work"
+            ? "border-[var(--accent)] text-[var(--accent)]"
+            : "border-[var(--line)] text-[var(--fg)]",
+        )}
+      >
+        <Clock />
+      </button>
+
       <div
         ref={card}
         className="flip-card rounded-3xl transition-colors duration-500 data-[flash]:bg-[var(--accent)]"
@@ -132,9 +187,18 @@ export default function Countdown() {
           <p className="text-4xl font-bold">Magang selesai. Terima kasih.</p>
         ) : (
           <div aria-live="off">
-            {/* Ukuran & warna diatur variabel --fcc-* di .flip-card (globals.css). */}
+            {swapped && <p className="mb-3 text-sm text-[var(--dim)]">{secLabel}</p>}
+            {/* Ukuran & warna diatur variabel --fcc-* di .flip-card (globals.css).
+                Mode hari kerja: `now` semu = END_TARGET - sisa waktu kerja, jadi
+                komponen menampilkan hari kerja tersisa tanpa perlu API tambahan. */}
             <FlipClockCountdown
-              to={END_TARGET}
+              key={`${mode}-${swapped}`}
+              to={mainTo}
+              now={
+                mode === "work" && !swapped
+                  ? () => +END_TARGET - workRemainingMs(new Date())
+                  : Date.now
+              }
               labels={["HARI", "JAM", "MENIT", "DETIK"]}
               hideOnComplete={false}
               digitBlockStyle={{ fontWeight: 700 }}
@@ -147,7 +211,9 @@ export default function Countdown() {
 
       {!finished && showSecondary && (
         <div className="mt-8">
-          <p className="mb-1 text-sm text-[var(--dim)]">{secLabel}</p>
+          <p className="mb-1 text-sm text-[var(--dim)]">
+            {swapped ? "Sisa hari kerja (beku sampai sesi berikutnya)" : secLabel}
+          </p>
           <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 [font-variant-numeric:tabular-nums]">
             <Unit label="Hari" inner={sd} wrap={sdWrap} />
             <Unit label="Jam" inner={sh} />
