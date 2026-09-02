@@ -26,8 +26,19 @@ export default function InfoBar() {
       if (next) setHoliday(`Libur berikutnya: ${next.name}, ${fmtShort(next.d)}`);
     });
 
+    // Service worker versi baru langsung mengambil alih (skipWaiting + claim).
+    // Muat ulang sekali supaya user yang sudah pernah buka situs ini ikut dapat
+    // versi terbaru tanpa perlu hard reset. Kunjungan pertama tidak ikut reload.
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
+      const sudahDikontrol = !!navigator.serviceWorker.controller;
+      let dimuatUlang = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!sudahDikontrol || dimuatUlang) return;
+        dimuatUlang = true;
+        location.reload();
+      });
+      // updateViaCache none: berkas sw.js sendiri tidak boleh diambil dari cache HTTP.
+      navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }).catch(() => {});
     }
 
     return () => clearInterval(t);

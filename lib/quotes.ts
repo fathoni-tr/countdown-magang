@@ -152,8 +152,9 @@ const KERJA = [
   "Hitungan ini akan habis. Pastikan kamu bawa sesuatu waktu itu tiba.",
 ];
 
-// Jam istirahat siang dan sesudah jam pulang: nadanya menenangkan, bukan memacu.
-const ISTIRAHAT = [
+// Istirahat siang, 12.00 sampai 13.00. Menenangkan, tapi ingat sorenya masih
+// lanjut kerja lagi.
+const SIANG = [
   "Istirahat itu bagian dari kerja, bukan bolos dari kerja.",
   "Makan dulu yang benar. Kerjaan nggak akan lari.",
   "Jam ini punya kamu. Layar boleh ditinggal dulu.",
@@ -164,14 +165,6 @@ const ISTIRAHAT = [
   "Jangan mikirin kerjaan sambil makan. Dua-duanya jadi nggak enak.",
   "Ngobrol sama teman sebelah. Itu juga bagian dari magang.",
   "Selesai rehat, kamu balik dengan kepala yang lebih ringan.",
-  "Hari ini sudah kamu jalani sampai habis. Sisanya urusan besok.",
-  "Pulang tepat waktu bukan malas, itu tahu batas.",
-  "Tutup laptop dengan tenang. Besok masih ada jamnya.",
-  "Kerjaan yang belum kelar bukan berarti harimu gagal.",
-  "Istirahat beneran malam ini, biar besok nggak setengah-setengah.",
-  "Tidur cukup itu strategi, bukan kemewahan.",
-  "Simpan tenaga buat besok. Yang lari terus akan berhenti di tengah.",
-  "Sudah cukup untuk hari ini. Terima kasih sudah bertahan.",
   "Air putih dulu, kopi belakangan.",
   "Rehat yang tenang bikin semangat pas jam kerja mulai lagi.",
   "Jam istirahat itu bukan bonus, itu hakmu.",
@@ -189,6 +182,25 @@ const ISTIRAHAT = [
   "Kerja bagus butuh jeda. Ini jedanya.",
   "Jangan makan di depan layar. Rasanya beda, sungguh.",
   "Kalau capek, tutup mata lima menit. Itu cukup.",
+  "Sejam ini buat ngisi tenaga, bukan buat mikir kerjaan.",
+  "Habis makan jangan langsung balik ke layar. Kasih jeda sebentar.",
+  "Selamat makan siang. Semoga lauknya sesuai selera.",
+  "Setengah hari lagi. Kenyangkan dulu perutnya.",
+  "Ngantuk habis makan itu wajar. Jalan sebentar biar segar.",
+  "Sore nanti butuh tenaga. Isi sekarang.",
+];
+
+// Sesudah jam pulang sampai sebelum jam masuk besoknya. Harinya sudah habis,
+// tidak ada lagi yang perlu dikejar.
+const PULANG = [
+  "Hari ini sudah kamu jalani sampai habis. Sisanya urusan besok.",
+  "Pulang tepat waktu bukan malas, itu tahu batas.",
+  "Tutup laptop dengan tenang. Besok masih ada jamnya.",
+  "Kerjaan yang belum kelar bukan berarti harimu gagal.",
+  "Istirahat beneran malam ini, biar besok nggak setengah-setengah.",
+  "Tidur cukup itu strategi, bukan kemewahan.",
+  "Simpan tenaga buat besok. Yang lari terus akan berhenti di tengah.",
+  "Sudah cukup untuk hari ini. Terima kasih sudah bertahan.",
   "Jam pulang bukan garis finis, cuma tanda hari ini sudah cukup.",
   "Sore ini biarkan kerjaan tetap di kantor.",
   "Sampai rumah, jadi manusia dulu. Karyawannya besok pagi lagi.",
@@ -199,6 +211,17 @@ const ISTIRAHAT = [
   "Notifikasi kerjaan boleh nunggu sampai besok pagi.",
   "Kaki naik, pikiran turun. Selamat istirahat.",
   "Istirahat sekarang, biar besok mulai dengan tenaga penuh.",
+  "Jam kerja habis. Sisanya waktumu sendiri.",
+  "Selamat pulang. Hati-hati di jalan.",
+  "Kerjaan sudah kamu tinggal di meja. Jangan dibawa pulang.",
+  "Hari ini selesai. Besok urusan besok.",
+  "Sampai jumpa besok pagi jam setengah delapan.",
+  "Malam ini nggak ada tugas. Cuma istirahat.",
+  "Makan malam yang benar, tidur yang cukup. Itu saja.",
+  "Kamu sudah kerja seharian. Sekarang giliran kamu istirahat.",
+  "Layar sudah cukup untuk hari ini. Coba lihat yang lain.",
+  "Besok pagi kamu lebih siap kalau malam ini benar-benar berhenti.",
+  "Terima kasih sudah bertahan sampai jam pulang.",
 ];
 
 // Sabtu, Minggu, dan tanggal merah: santai tapi tetap ingat laporan magang.
@@ -260,22 +283,27 @@ const LIBUR = [
   "Sampai ketemu Senin dengan tenaga penuh. Sekarang istirahat dulu.",
 ];
 
-export type Mood = "kerja" | "istirahat" | "libur";
+export type Mood = "kerja" | "siang" | "pulang" | "libur";
 
 /**
- * Suasana kalimat mengikuti jam: hari libur/tanggal merah -> libur, jam
- * istirahat siang dan di luar jam kerja -> istirahat, sisanya -> kerja.
+ * Suasana kalimat mengikuti jam: bukan hari kerja -> libur, sesudah jam pulang
+ * -> pulang, jam istirahat siang -> siang, sisanya (termasuk sebelum jam masuk)
+ * -> kerja.
  */
 export function quoteMood(now: Date): Mood {
   if (!isWorkday(now)) return "libur";
-  const jamKerja =
-    now >= atTime(now, CONFIG.WORK_START) && now < atTime(now, CONFIG.WORK_END);
+  if (now >= atTime(now, CONFIG.WORK_END)) return "pulang";
   const rehatSiang =
     now >= atTime(now, CONFIG.BREAK_START) && now < atTime(now, CONFIG.BREAK_END);
-  return jamKerja && !rehatSiang ? "kerja" : "istirahat";
+  return rehatSiang ? "siang" : "kerja";
 }
 
-const SETS: Record<Mood, string[]> = { kerja: KERJA, istirahat: ISTIRAHAT, libur: LIBUR };
+const SETS: Record<Mood, string[]> = {
+  kerja: KERJA,
+  siang: SIANG,
+  pulang: PULANG,
+  libur: LIBUR,
+};
 
 /** Interval ganti kalimat (ms). */
 export const ROTATE_MS = 30_000;

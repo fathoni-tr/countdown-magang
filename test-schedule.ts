@@ -97,11 +97,12 @@ async function main() {
 
   // Suasana kalimat ikut jam. 2026-09-02 = Rabu, 09-05 Sabtu, 09-07 tanggal merah.
   assert.equal(quoteMood(at(2026, 9, 2, 9, 0)), "kerja");
-  assert.equal(quoteMood(at(2026, 9, 2, 12, 0)), "istirahat", "12.00 mulai istirahat");
-  assert.equal(quoteMood(at(2026, 9, 2, 12, 59)), "istirahat");
+  assert.equal(quoteMood(at(2026, 9, 2, 12, 0)), "siang", "12.00 mulai istirahat siang");
+  assert.equal(quoteMood(at(2026, 9, 2, 12, 59)), "siang");
   assert.equal(quoteMood(at(2026, 9, 2, 13, 0)), "kerja", "13.00 kerja lagi");
-  assert.equal(quoteMood(at(2026, 9, 2, 16, 0)), "istirahat", "lewat jam pulang");
-  assert.equal(quoteMood(at(2026, 9, 2, 6, 0)), "istirahat", "sebelum jam masuk");
+  assert.equal(quoteMood(at(2026, 9, 2, 16, 0)), "pulang", "lewat jam pulang");
+  assert.equal(quoteMood(at(2026, 9, 2, 23, 0)), "pulang");
+  assert.equal(quoteMood(at(2026, 9, 2, 6, 0)), "kerja", "sebelum jam masuk");
   assert.equal(quoteMood(at(2026, 9, 5, 12, 0)), "libur");
   assert.equal(quoteMood(at(2026, 9, 7, 10, 0)), "libur");
 
