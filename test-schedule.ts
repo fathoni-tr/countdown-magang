@@ -1,7 +1,7 @@
 // Self-check logika jadwal. Jalankan: npx tsx test-schedule.ts
 // Tanpa framework. Gagal = throw.
 import assert from "node:assert/strict";
-import { MOODS, nextQuoteIndex, quoteAt, quoteCount, quoteMood } from "./lib/quotes";
+import { SLOTS, nextQuoteIndex, quoteAt, quoteCount, quoteMood, slotOf } from "./lib/quotes";
 import { CONFIG, END_TARGET } from "./lib/config";
 import { getSessionStatus, isWorkday, nextSessionStart, workRemainingMs } from "./lib/schedule";
 import { atTime, parts, ymd } from "./lib/time";
@@ -106,38 +106,53 @@ async function main() {
   assert.equal(quoteMood(at(2026, 9, 5, 12, 0)), "libur");
   assert.equal(quoteMood(at(2026, 9, 7, 10, 0)), "libur");
 
-  const kalimat = (m: (typeof MOODS)[number]) =>
-    Array.from({ length: quoteCount(m) }, (_, i) => quoteAt(m, i));
+  const kalimat = (s: (typeof SLOTS)[number]) =>
+    Array.from({ length: quoteCount(s) }, (_, i) => quoteAt(s, i));
 
   assert.ok(
-    kalimat("libur").some((q) => q.toLowerCase().includes("laporan")),
+    kalimat("libur:6").some((q) => q.toLowerCase().includes("laporan")),
     "set libur harus mengingatkan laporan magang",
+  );
+
+  // Slot = suasana + hari, dan hari kerja punya kalimat khusus yang tidak muncul
+  // di hari lain. 2026-09-07 Senin (tanggal merah, tetap hari ke-1).
+  assert.equal(slotOf(at(2026, 9, 2, 9, 0)), "kerja:3", "Rabu jam kerja");
+  assert.equal(slotOf(at(2026, 9, 4, 6, 0)), "pagi:5", "Jumat sebelum masuk");
+  assert.equal(slotOf(at(2026, 9, 5, 12, 0)), "libur:6", "Sabtu");
+  assert.ok(
+    kalimat("kerja:1").some((q) => q.includes("Senin")) &&
+      kalimat("kerja:5").some((q) => q.includes("Jumat")),
+    "hari kerja harus punya kalimat khusus harinya",
+  );
+  assert.ok(
+    quoteCount("kerja:1") > quoteCount("kerja:0"),
+    "slot hari kerja harus lebih banyak daripada slot tanpa tambahan",
   );
 
   // nextQuoteIndex: selalu dalam rentang, tidak pernah mengulang indeks sekarang,
   // dan bisa mencapai semua indeks. Tanpa duplikat, tanpa em dash.
-  for (const mood of MOODS) {
-    const n = quoteCount(mood);
-    const semua = kalimat(mood);
-    assert.equal(new Set(semua).size, n, `kalimat kembar di set ${mood}`);
+  for (const slot of SLOTS) {
+    const n = quoteCount(slot);
+    const semua = kalimat(slot);
+    assert.equal(new Set(semua).size, n, `kalimat kembar di slot ${slot}`);
     // Semua kalimat wajib ASCII: menjaring em dash, en dash, dan kutip lengkung
     // sekaligus tanpa perlu menulis karakternya di berkas ini.
     assert.ok(
       semua.every((q) => [...q].every((c) => c.codePointAt(0)! < 128)),
-      `karakter non-ASCII di set ${mood}`,
+      `karakter non-ASCII di slot ${slot}`,
     );
 
     const kena = new Set<number>();
-    let prev = nextQuoteIndex(mood, -1);
+    let prev = nextQuoteIndex(slot, -1);
     assert.ok(prev >= 0 && prev < n, "pilihan pertama harus dalam rentang");
     for (let k = 0; k < 20_000; k++) {
-      const next = nextQuoteIndex(mood, prev);
+      const next = nextQuoteIndex(slot, prev);
       assert.ok(next >= 0 && next < n, "indeks harus dalam rentang");
       assert.notEqual(next, prev, "tidak boleh mengulang kalimat yang sama beruntun");
       kena.add(next);
       prev = next;
     }
-    assert.equal(kena.size, n, `semua kalimat harus bisa terpilih di set ${mood}`);
+    assert.equal(kena.size, n, `semua kalimat harus bisa terpilih di slot ${slot}`);
   }
 
   console.log("OK: semua pemeriksaan jadwal lolos");

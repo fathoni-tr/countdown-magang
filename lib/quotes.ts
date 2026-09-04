@@ -141,7 +141,6 @@ const KERJA = [
   "Salah ketik kecil bisa bikin ulang kerjaan sehari. Periksa dulu.",
   "Kalau instruksinya kurang jelas, ulangi pakai kalimatmu sendiri ke yang minta.",
   "Menit-menit pertama paling berat. Setelah itu jalan.",
-  "Senin cuma nama hari. Kerjanya sama saja.",
   "Sudah setengah jalan. Sisanya lebih pendek dari yang sudah kamu lewati.",
   "Jangan simpan pekerjaan penting sampai jam terakhir.",
   "Belajar alat baru itu investasi, bukan buang waktu.",
@@ -439,22 +438,94 @@ const SETS: Record<Mood, string[]> = {
   libur: LIBUR,
 };
 
+// Tambahan khusus hari tertentu, digabung ke set suasana yang sedang aktif.
+// ponytail: hanya slot yang benar-benar terasa beda per hari yang diisi. Sisanya
+// jatuh ke set suasana biasa, jadi tidak perlu 5 hari x 5 suasana.
+const HARI: Record<number, Partial<Record<Mood, string[]>>> = {
+  1: {
+    pagi: [
+      "Senin lagi. Mulai dari yang paling gampang dulu.",
+      "Awal minggu, awal cerita baru. Nggak harus langsung ngebut.",
+    ],
+    kerja: [
+      "Baru Senin, tenaga masih banyak. Pakai secukupnya.",
+      "Senin dilewati, sisa minggunya terasa lebih ringan.",
+    ],
+    siang: ["Istirahat Senin itu penting. Minggunya masih panjang."],
+    pulang: ["Senin selesai. Bagian yang paling berat sudah lewat."],
+  },
+  2: {
+    pagi: ["Selasa. Tinggal empat hari, santai saja."],
+    kerja: [
+      "Selasa jarang diomongin orang, padahal di sini kerjaan paling jalan.",
+      "Hari kedua, ritmenya sudah dapat. Lanjut saja.",
+    ],
+    pulang: ["Dua hari jalan, tiga hari sisa. Masih aman."],
+  },
+  3: {
+    pagi: ["Rabu. Sudah separuh minggu, jangan lupa napas."],
+    kerja: [
+      "Rabu, tengah minggu. Separuh jalan sudah kamu lewati.",
+      "Puncak bukitnya Rabu. Sesudah ini turunan.",
+    ],
+    pulang: ["Tengah minggu terlewati. Sisanya menurun."],
+  },
+  4: {
+    pagi: ["Kamis. Sisa dua hari, tinggal sedikit lagi."],
+    kerja: [
+      "Kamis waktunya beresin yang menggantung, sebelum ketumpuk di Jumat.",
+      "Besok Jumat. Hampir sampai.",
+    ],
+    pulang: ["Kamis kelar. Besok penutup minggu."],
+  },
+  5: {
+    pagi: [
+      "Jumat. Tutup minggu ini dengan rapi.",
+      "Hari terakhir minggu ini. Habiskan sisa tenaga secukupnya.",
+    ],
+    kerja: [
+      "Jumat, tinggal sedikit lagi. Rapikan yang perlu dirapikan.",
+      "Sebelum pulang nanti, catat apa saja yang kamu kerjakan minggu ini.",
+    ],
+    siang: ["Istirahat Jumat rasanya beda. Nikmati."],
+    pulang: [
+      "Selamat akhir pekan. Kamu menyelesaikan satu minggu lagi.",
+      "Minggu ini habis. Sekarang giliran kamu yang istirahat.",
+    ],
+  },
+};
+
 /** Interval ganti kalimat (ms). */
 export const ROTATE_MS = 30_000;
 
 export const MOODS = Object.keys(SETS) as Mood[];
 
-export const quoteCount = (mood: Mood): number => SETS[mood].length;
+/** Kolam kalimat = suasana + hari, supaya Senin dan Jumat tidak terasa sama. */
+export type Slot = `${Mood}:${number}`;
 
-export const quoteAt = (mood: Mood, i: number): string => SETS[mood][i];
+export const slotOf = (now: Date): Slot => `${quoteMood(now)}:${now.getDay()}`;
+
+export const SLOTS: Slot[] = MOODS.flatMap((m) =>
+  [0, 1, 2, 3, 4, 5, 6].map((d) => `${m}:${d}` as Slot),
+);
+
+const poolOf = (slot: Slot): string[] => {
+  const [mood, day] = slot.split(":") as [Mood, string];
+  const extra = HARI[Number(day)]?.[mood];
+  return extra ? [...SETS[mood], ...extra] : SETS[mood];
+};
+
+export const quoteCount = (slot: Slot): number => poolOf(slot).length;
+
+export const quoteAt = (slot: Slot, i: number): string => poolOf(slot)[i];
 
 /**
  * Indeks acak. Tiap perangkat dapat urutan sendiri, dan dijamin tidak sama
  * dengan indeks sekarang supaya tidak pernah terlihat "tidak berganti".
- * prev < 0 untuk pilihan pertama (atau saat pindah suasana).
+ * prev < 0 untuk pilihan pertama (atau saat pindah slot).
  */
-export function nextQuoteIndex(mood: Mood, prev: number): number {
-  const n = quoteCount(mood);
+export function nextQuoteIndex(slot: Slot, prev: number): number {
+  const n = quoteCount(slot);
   if (prev < 0 || prev >= n) return Math.floor(Math.random() * n);
   // Undi dari n-1 kandidat, lalu geser melewati indeks sekarang. Tanpa loop ulang.
   const i = Math.floor(Math.random() * (n - 1));
