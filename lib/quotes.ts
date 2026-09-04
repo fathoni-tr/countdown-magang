@@ -150,6 +150,82 @@ const KERJA = [
   "Kamu boleh minta bantuan. Itu bukan curang.",
   "Yang dikerjakan sekarang tidak akan mengganggu tidurmu nanti malam.",
   "Hitungan ini akan habis. Pastikan kamu bawa sesuatu waktu itu tiba.",
+  "Kalau kepala penuh, tulis semua di kertas. Sisanya jadi kelihatan kecil.",
+  "Tanya ke pembimbingmu sebelum kelamaan menebak sendiri.",
+  "Kerjaan yang kamu kuasai hari ini, dulu bikin kamu panik.",
+  "Jam tujuh setengah sampai empat sore itu tidak lama. Yang bikin lama itu menunda.",
+  "Kalau lagi kosong, tanya ada yang bisa dibantu. Itu nilai lebih anak magang.",
+  "Bawa buku catatan ke mana pun. Yang dicatat jarang dilupakan.",
+  "Hafalkan nama orang-orang di sekitarmu. Kelihatan sepele, dampaknya besar.",
+  "Hasil kerja yang rapi lebih diingat daripada yang cepat tapi berantakan.",
+  "Kalau salah, bilang duluan sebelum ketahuan. Itu tanda dewasa.",
+  "Belum diberi tugas bukan berarti nganggur. Baca, amati, catat.",
+  "Kerjaan sepele yang dikerjakan rapi bikin orang percaya kasih yang besar.",
+  "Sekarang kamu menumpuk pengalaman, bukan sekadar menghabiskan jam.",
+  "Kalau hari ini terasa lambat, cek lagi: sudah berapa yang kamu selesaikan?",
+  "Fokus itu otot. Makin sering dipakai, makin kuat.",
+  "Yang bikin kamu diingat bukan IPK, tapi cara kamu kerja.",
+  "Selesaikan sampai tuntas, jangan berhenti di sembilan puluh persen.",
+  "Laporkan progres tanpa diminta. Atasan paling suka yang begini.",
+  "Nggak paham istilahnya? Catat, cari nanti. Jangan pura-pura ngerti.",
+  "Sekali kamu paham polanya, sisanya jadi jauh lebih gampang.",
+  "Kerjakan yang bikin kamu agak takut. Di situ kamu naik kelas.",
+  "Kalau hari ini banyak yang salah, artinya hari ini banyak yang kamu coba.",
+  "Sisa magangmu terbatas. Ambil sebanyak mungkin selagi masih bisa nanya gratis.",
+];
+
+// Sebelum jam masuk di hari kerja: menyiapkan diri, bukan mengejar tugas.
+const PAGI = [
+  "Selamat pagi. Pelan-pelan saja, harinya masih panjang.",
+  "Sarapan dulu. Kerja dengan perut kosong itu setengah tenaga.",
+  "Berangkat lebih awal, sampai lebih tenang.",
+  "Cek dulu apa yang mau kamu selesaikan hari ini. Cukup tiga hal.",
+  "Hari ini belum terjadi apa-apa. Semuanya masih mungkin.",
+  "Bangun pagi memang berat, tapi belum pernah bikin nyesel.",
+  "Hati-hati di jalan. Sampai kantor dengan selamat itu yang pertama.",
+  "Jam setengah delapan mulai. Sekarang siapkan dirimu dulu.",
+  "Pagi yang tenang bikin siang nggak berantakan.",
+  "Bawa yang perlu dibawa. Cek sekali lagi sebelum berangkat.",
+  "Semalam sudah lewat. Hari ini halaman baru.",
+  "Kalau semalam kurang tidur, jangan tambah kopi. Tambah jalan kaki.",
+  "Satu hari kerja lagi, satu hari lebih dekat.",
+  "Mulai hari dengan kepala yang belum penuh. Nikmati sebentar.",
+  "Tarik napas. Hari ini nggak akan seburuk yang kamu bayangkan.",
+  "Hari ini kamu cuma perlu hadir dan mau belajar.",
+  "Pagi ini pilih satu hal yang mau kamu kerjakan lebih baik dari kemarin.",
+  "Musik favorit di jalan. Modal kecil buat hari yang panjang.",
+  "Jangan lupa sarapan, jangan lupa senyum. Dua-duanya gratis.",
+  "Datang lebih awal lima menit itu kelihatan, walau nggak ada yang bilang.",
+  "Belum jam setengah delapan. Nggak usah buru-buru mikir kerjaan.",
+  "Mandi dulu yang benar. Setengah hari ke depan tergantung mood pagi ini.",
+  "Cek cuaca sebentar. Bawa jas hujan kalau ragu.",
+  "Isi bensin sekarang, jangan pas sudah telat.",
+  "Kalau semalam kepikiran kerjaan, tulis di kertas. Habis itu lupakan.",
+  "Motor atau sepatu, pastikan siap. Pagi bukan waktunya kejutan.",
+  "Kamu bangun pagi buat sesuatu. Ingat itu di jalan nanti.",
+  "Charger, botol minum, kartu akses. Tiga benda yang paling sering ketinggalan.",
+  "Nggak semua pagi harus semangat. Cukup berangkat.",
+  "Hari kerja dimulai jam setengah delapan, bukan sekarang. Nikmati sisanya.",
+  "Berdoa sebentar sebelum berangkat. Nggak lama, tapi menenangkan.",
+  "Kalau ada yang mau kamu tanya ke pembimbing, catat sekarang selagi ingat.",
+  "Pagi itu waktu paling jernih. Sayang kalau habis buat scroll.",
+  "Sekali lagi berangkat. Hitungan mundurnya ikut jalan.",
+  "Sarapan nggak harus berat. Yang penting ada isinya.",
+  "Rapikan meja kerjamu begitu sampai. Lima menit, tapi kepala jadi enteng.",
+  "Kalau semalam salah, hari ini kesempatan memperbaiki.",
+  "Berangkat sekarang lebih baik daripada ngebut nanti.",
+  "Jangan buka notifikasi kerjaan dulu. Belum jamnya.",
+  "Anak magang yang datang tepat waktu itu sudah unggul separuh jalan.",
+  "Semangat pagi nggak datang sendiri. Biasanya muncul setelah mulai.",
+  "Hari ini target kecil saja. Yang penting jelas.",
+  "Kalau macet, kamu nggak bisa apa-apa. Berangkat lebih awal, kamu bisa.",
+  "Kopi boleh, tapi jangan gantikan sarapan.",
+  "Bilang pamit sama orang rumah. Sepele, tapi berarti.",
+  "Pagi ini masih milikmu. Kantor baru mulai nanti.",
+  "Ingat kenapa kamu ambil magang ini. Terutama di pagi yang berat.",
+  "Setrika seragam semalam? Kalau belum, sekarang masih sempat.",
+  "Nggak ada yang menilai pagimu. Yang dinilai kerjamu nanti.",
+  "Satu pagi lagi dilewati. Ternyata kamu kuat juga.",
 ];
 
 // Istirahat siang, 12.00 sampai 13.00. Menenangkan, tapi ingat sorenya masih
@@ -188,6 +264,28 @@ const SIANG = [
   "Setengah hari lagi. Kenyangkan dulu perutnya.",
   "Ngantuk habis makan itu wajar. Jalan sebentar biar segar.",
   "Sore nanti butuh tenaga. Isi sekarang.",
+  "Jam satu masih lama. Kunyah pelan-pelan.",
+  "Kerjaan tadi pagi sudah cukup. Sekarang jangan dipikirin dulu.",
+  "Duduk yang jauh dari meja kerja. Suasana baru bikin kepala segar.",
+  "Kalau tadi pagi berat, siang ini pantas kamu nikmati.",
+  "Makan bareng teman lebih enak daripada makan sambil balas pesan.",
+  "Jangan skip makan siang. Sore nanti kamu yang rugi.",
+  "Isi tenaga sekarang, biar jam tiga nanti nggak drop.",
+  "Cuci muka sebentar. Murah, tapi ampuh.",
+  "Ini satu-satunya jam yang benar-benar bebas. Pakai buat kamu sendiri.",
+  "Habis ini masih tiga jam. Cukup santai, jangan sampai molor.",
+  "Sarapan tadi mungkin buru-buru. Yang ini jangan.",
+  "Ngobrol yang bukan soal kerjaan itu juga istirahat.",
+  "Jam satu masuk lagi. Sekarang belum, jadi santai dulu.",
+  "Makan sambil buka laporan itu bukan istirahat namanya.",
+  "Selesaikan makanmu dulu. Kerjaan nggak akan lari.",
+  "Kalau pagi tadi berantakan, siang ini tempat mulai ulang.",
+  "Duduk sebentar tanpa layar. Mata juga butuh libur.",
+  "Sholat dulu buat yang menjalankan. Sisanya masih cukup buat makan.",
+  "Setengah hari sudah lewat. Setengah lagi lebih ringan.",
+  "Minum air putih, bukan cuma es teh.",
+  "Ngantuk habis makan itu normal. Jalan sebentar biar hilang.",
+  "Jangan skip makan siang demi kelihatan rajin. Nggak sepadan.",
 ];
 
 // Sesudah jam pulang sampai sebelum jam masuk besoknya. Harinya sudah habis,
@@ -222,6 +320,28 @@ const PULANG = [
   "Layar sudah cukup untuk hari ini. Coba lihat yang lain.",
   "Besok pagi kamu lebih siap kalau malam ini benar-benar berhenti.",
   "Terima kasih sudah bertahan sampai jam pulang.",
+  "Hari ini sudah masuk hitungan. Satu lagi lewat.",
+  "Kerjaan besok akan lebih mudah kalau malam ini kamu benar-benar berhenti.",
+  "Catat sebentar apa yang kamu kerjakan hari ini. Nanti kepakai buat laporan.",
+  "Nggak ada yang menilai kamu dari jam berapa kamu pulang.",
+  "Sisa harinya milik kamu. Pakai buat yang kamu suka.",
+  "Kalau tadi ada yang bikin kesal, tinggalkan di kantor.",
+  "Besok pagi jam setengah delapan lagi. Sekarang lupakan dulu.",
+  "Gerak sedikit sore ini. Badanmu duduk seharian.",
+  "Satu hari lagi selesai. Hitungannya makin pendek.",
+  "Kabari orang rumah. Mereka senang dengar cerita harianmu.",
+  "Malam ini nggak usah buka email kerjaan.",
+  "Tidur lebih awal itu bentuk persiapan buat besok.",
+  "Jam kerja sudah habis. Kepalamu boleh ikut pulang.",
+  "Yang belum selesai hari ini, besok masih ada jamnya.",
+  "Sampai rumah, ganti baju dulu. Sisanya nanti.",
+  "Hari ini kamu hadir dan berusaha. Itu sudah cukup.",
+  "Kalau tadi ada yang bikin kesal, jangan dibawa tidur.",
+  "Makan malam yang benar. Badanmu kerja seharian.",
+  "Catat satu hal yang kamu pelajari tadi. Nanti kepakai di laporan.",
+  "Jangan ukur harimu cuma dari yang belum selesai.",
+  "Layar seharian. Malam ini kasih mata istirahat.",
+  "Besok versi kamu yang lebih segar yang lanjutkan.",
 ];
 
 // Sabtu, Minggu, dan tanggal merah: santai tapi tetap ingat laporan magang.
@@ -281,17 +401,30 @@ const LIBUR = [
   "Sedikit rapi di hari libur, banyak lega di hari kerja.",
   "Nikmati sarapan tanpa buru-buru. Itu mewah.",
   "Sampai ketemu Senin dengan tenaga penuh. Sekarang istirahat dulu.",
+  "Nggak ada alarm hari ini. Nikmati.",
+  "Tulis tiga hal yang kamu pelajari minggu ini. Cukup tiga.",
+  "Kumpulkan bukti kegiatan minggu ini selagi masih ingat urutannya.",
+  "Cicil sedikit hari ini, biar minggu terakhir magang nggak jadi mimpi buruk.",
+  "Hari libur yang benar itu yang bikin kamu kangen kerja lagi. Dikit.",
+  "Jangan buka grup kerjaan seharian. Boleh, kok.",
+  "Belajar hal baru yang nggak ada hubungannya sama kantor.",
+  "Rapikan catatan magangmu. Nanti tinggal salin ke laporan.",
+  "Bangun, sarapan, jalan sebentar. Sisanya terserah kamu.",
+  "Minggu depan datang cepat. Tapi hari ini masih hari ini.",
+  "Kalau capek batin, istirahat batin juga. Bukan cuma badan.",
+  "Sisihkan waktu buat yang di rumah. Mereka juga bagian dari perjalananmu.",
 ];
 
-export type Mood = "kerja" | "siang" | "pulang" | "libur";
+export type Mood = "pagi" | "kerja" | "siang" | "pulang" | "libur";
 
 /**
- * Suasana kalimat mengikuti jam: bukan hari kerja -> libur, sesudah jam pulang
- * -> pulang, jam istirahat siang -> siang, sisanya (termasuk sebelum jam masuk)
+ * Suasana kalimat mengikuti jam: bukan hari kerja -> libur, sebelum jam masuk
+ * -> pagi, sesudah jam pulang -> pulang, jam istirahat siang -> siang, sisanya
  * -> kerja.
  */
 export function quoteMood(now: Date): Mood {
   if (!isWorkday(now)) return "libur";
+  if (now < atTime(now, CONFIG.WORK_START)) return "pagi";
   if (now >= atTime(now, CONFIG.WORK_END)) return "pulang";
   const rehatSiang =
     now >= atTime(now, CONFIG.BREAK_START) && now < atTime(now, CONFIG.BREAK_END);
@@ -299,6 +432,7 @@ export function quoteMood(now: Date): Mood {
 }
 
 const SETS: Record<Mood, string[]> = {
+  pagi: PAGI,
   kerja: KERJA,
   siang: SIANG,
   pulang: PULANG,

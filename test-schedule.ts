@@ -102,7 +102,7 @@ async function main() {
   assert.equal(quoteMood(at(2026, 9, 2, 13, 0)), "kerja", "13.00 kerja lagi");
   assert.equal(quoteMood(at(2026, 9, 2, 16, 0)), "pulang", "lewat jam pulang");
   assert.equal(quoteMood(at(2026, 9, 2, 23, 0)), "pulang");
-  assert.equal(quoteMood(at(2026, 9, 2, 6, 0)), "kerja", "sebelum jam masuk");
+  assert.equal(quoteMood(at(2026, 9, 2, 6, 0)), "pagi", "sebelum jam masuk");
   assert.equal(quoteMood(at(2026, 9, 5, 12, 0)), "libur");
   assert.equal(quoteMood(at(2026, 9, 7, 10, 0)), "libur");
 
