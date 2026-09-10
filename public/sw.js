@@ -1,7 +1,7 @@
 // ponytail: HTML dan data selalu ambil jaringan dulu, jadi deploy baru langsung
 // kelihatan tanpa hard reset. Cache cuma cadangan waktu offline. Aset ber-hash
 // di /_next/static isinya tidak pernah berubah, jadi aman diambil dari cache.
-const CACHE = "intern-countdown-v2";
+const CACHE = "intern-countdown-v3";
 const OFFLINE = ["/", "/manifest.json", "/data/holidays-2026.json", "/data/holidays-2027.json"];
 
 self.addEventListener("install", (e) => {
@@ -31,6 +31,11 @@ self.addEventListener("fetch", (e) => {
 
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+
+  // /api/chat adalah stream SSE yang tidak pernah selesai. Meng-clone-nya untuk
+  // cache akan menahan buffer selamanya, dan fallback ke "/" cuma mengirim HTML
+  // ke EventSource. Biarkan lewat apa adanya.
+  if (url.pathname.startsWith("/api/")) return;
 
   if (url.pathname.startsWith("/_next/static/")) {
     e.respondWith(

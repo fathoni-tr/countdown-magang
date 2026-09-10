@@ -1,5 +1,5 @@
 import { Analytics } from "@vercel/analytics/next";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Audiowide, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -24,6 +24,15 @@ export const metadata: Metadata = {
     description: "Sisa waktu magang menuju 29 Januari 2027 pukul 16.00 waktu setempat.",
     type: "website",
   },
+};
+
+// interactiveWidget: papan ketik ponsel memperkecil viewport, bukan menutupi
+// halaman. Tanpa ini kolom tulis pesan (position: fixed) bisa tersembunyi di
+// belakang papan ketik, terutama di Safari iOS.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "resizes-content",
 };
 
 // Terapkan tema sebelum paint pertama supaya tidak berkedip.

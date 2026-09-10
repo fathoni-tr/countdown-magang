@@ -1,3 +1,4 @@
+import ChatBubbles from "@/components/ChatBubbles";
 import Countdown from "@/components/Countdown";
 import QuoteTicker from "@/components/QuoteTicker";
 import { Globe } from "@/components/Globe";
@@ -34,6 +35,8 @@ export default function Page() {
       <div className="relative">
         <InfoBar />
       </div>
+
+      <ChatBubbles />
     </main>
   );
 }

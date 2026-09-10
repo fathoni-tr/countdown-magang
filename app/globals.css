@@ -107,3 +107,68 @@ body {
     opacity: 1;
   }
 }
+
+/* Gelembung chat. Naik dari bawah layar ke sekitar tengah selama 5 detik lalu
+   hilang. Dua lapis supaya transform-nya tidak berebut: pembungkus mengurus
+   naik, isinya mengurus goyang. Pemusatan pakai properti `translate` yang
+   terpisah dari `transform`, jadi tidak ditimpa animasi. */
+.chat-bubble {
+  position: absolute;
+  bottom: -3.5rem;
+  translate: -50% 0;
+  animation:
+    bubble-rise 5s cubic-bezier(0.12, 0.62, 0.2, 1) forwards,
+    bubble-fade 5s linear forwards;
+}
+
+.chat-bubble-i {
+  display: inline-block;
+  /* alternate: satu ayunan ke kiri, satu ke kanan, terus-menerus. */
+  animation: bubble-wiggle var(--wig, 1.4s) ease-in-out infinite alternate;
+}
+
+@keyframes bubble-rise {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-58vh);
+  }
+}
+
+@keyframes bubble-fade {
+  0% {
+    opacity: 0;
+    scale: 0.9;
+  }
+  8% {
+    opacity: 1;
+    scale: 1;
+  }
+  75% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+
+@keyframes bubble-wiggle {
+  from {
+    transform: translateX(calc(var(--drift, 10px) * -1));
+  }
+  to {
+    transform: translateX(var(--drift, 10px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-bubble {
+    animation-timing-function: linear;
+  }
+  .chat-bubble-i {
+    animation: none;
+  }
+}

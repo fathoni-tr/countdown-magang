@@ -29,7 +29,12 @@ export default function InfoBar() {
     // Service worker versi baru langsung mengambil alih (skipWaiting + claim).
     // Muat ulang sekali supaya user yang sudah pernah buka situs ini ikut dapat
     // versi terbaru tanpa perlu hard reset. Kunjungan pertama tidak ikut reload.
-    if ("serviceWorker" in navigator) {
+    // Saat dev, nama berkas di /_next/static/ dipakai ulang sehingga service
+    // worker (cache-first untuk folder itu) menyajikan JS/CSS basi dan
+    // perubahan tidak terlihat sampai di-unregister manual. Di produksi nama
+    // berkasnya ber-hash, jadi masalah ini tidak ada.
+    const dev = ["localhost", "127.0.0.1"].includes(location.hostname);
+    if (!dev && "serviceWorker" in navigator) {
       const sudahDikontrol = !!navigator.serviceWorker.controller;
       let dimuatUlang = false;
       navigator.serviceWorker.addEventListener("controllerchange", () => {
