@@ -172,3 +172,189 @@ body {
     animation: none;
   }
 }
+
+/* ---- Mode game ------------------------------------------------------------
+   GameDock menempelkan data-game di <html>. Semua penyesuaian tata letak
+   dikerjakan CSS dari sini, jadi page.tsx tetap komponen server. */
+
+:root[data-game] main {
+  /* Isi halaman jadi lebih tinggi dari layar: berhenti memusatkan vertikal
+     dan izinkan scroll, kalau tidak bagian atas terpotong. */
+  align-content: start;
+  overflow-y: auto;
+  padding-top: 1.5rem;
+  /* place-content-center bikin kolom grid selebar isinya saja, sehingga papan
+     game ikut menciut. Paksa satu kolom selebar main; tiap anak sudah
+     memusatkan diri sendiri. */
+  grid-template-columns: minmax(0, 1fr);
+}
+
+:root[data-game] .game-hide {
+  display: none;
+}
+
+/* Jam flip mengecil supaya game kebagian ruang, terutama di HP. */
+:root[data-game] .flip-card {
+  --w: min(3.6rem, (100vw - 2.5rem) / 11);
+  --fcc-shadow: 0 4px 12px rgb(0 0 0 / 0.12);
+}
+
+/* Semua ukuran papan diturunkan dari satu --board. Panjang sungguhan, bukan
+   persen: dengan begitu translate ubin bisa dianimasikan compositor dan
+   font-size sel ikut lebar papan (persen di font-size mengacu ke font induk). */
+.game2048 {
+  --board: min(88vw, 58vh, 352px);
+  --gap: calc(var(--board) * 0.024);
+  --cell: calc((var(--board) - var(--gap) * 5) / 4);
+  width: var(--board);
+}
+
+/* Sel latar dan ubin sama-sama absolut dari sudut papan; sisa perpindahannya
+   diurus translate. */
+.board2048 > span {
+  left: var(--gap);
+  top: var(--gap);
+}
+
+.tile2048 {
+  transition: translate 110ms ease-in-out;
+}
+
+.tile2048-born {
+  animation: tile-born 160ms ease-out both;
+}
+
+.tile2048-merged {
+  animation: tile-merged 160ms ease-out both;
+}
+
+/* scale, bukan transform: transform akan menimpa translate posisi ubin. */
+@keyframes tile-born {
+  from {
+    scale: 0.35;
+    opacity: 0;
+  }
+}
+
+@keyframes tile-merged {
+  50% {
+    scale: 1.18;
+  }
+}
+
+.furdle-pop {
+  animation: tile-merged 110ms ease-out both;
+}
+
+/* --cols dipasang komponennya (4/5/6). Ukuran sel dikunci ke hasil mode 6
+   huruf -- mode terpadat -- jadi kotaknya sama besar di semua mode; yang
+   menyempit barisnya, bukan kotaknya yang membesar. */
+.furdle {
+  --cols: 5;
+  --furdle-w: min(88vw, 336px);
+  --furdle-gap: 6px;
+  --cell: calc((var(--furdle-w) - var(--furdle-gap) * 5) / 6);
+  /* Papan tik: 10 tombol sebaris menentukan lebar satu tombol huruf. */
+  --key-gap: 4px;
+  --key: calc((var(--furdle-w) - var(--key-gap) * 9) / 10);
+  --letter: calc(var(--cell) * 0.48);
+  /* Lebar penuh dipertahankan supaya papan tik tidak ikut menyempit. */
+  width: var(--furdle-w);
+}
+
+.furdle-row {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), var(--cell));
+  gap: var(--furdle-gap);
+  justify-content: center;
+}
+
+.furdle-keys {
+  display: flex;
+  justify-content: center;
+  gap: var(--key-gap);
+}
+
+/* Semua tombol huruf selebar tombol di baris atas (10 tombol sebaris). Tanpa
+   ini baris ketiga membagi ruang yang sama untuk 7 huruf + enter + hapus,
+   jadi hurufnya jauh lebih sempit daripada dua baris di atasnya. */
+.furdle-key {
+  flex: none;
+  width: var(--key);
+}
+
+/* Enter dan hapus mengambil sisa ruang baris ketiga. */
+.furdle-key-wide {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+}
+
+.furdle-flip {
+  animation: furdle-flip 420ms ease-in-out both;
+}
+
+/* Warna sudah final sejak awal; rotasi sumbu X yang menyembunyikan
+   perubahannya di titik tengah, seperti Wordle aslinya. */
+@keyframes furdle-flip {
+  0% {
+    transform: rotateX(0deg);
+  }
+  50% {
+    transform: rotateX(90deg);
+  }
+  100% {
+    transform: rotateX(0deg);
+  }
+}
+
+.furdle-shake {
+  animation: furdle-shake 260ms ease-in-out;
+}
+
+@keyframes furdle-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+/* --bp-n dipasang komponen (jumlah kolom = ukuran grid). */
+.bluepuzzle {
+  --bp-w: min(88vw, 336px);
+  width: var(--bp-w);
+}
+
+.bluepuzzle-board {
+  --bp-n: 4;
+  --bp-gap: 6px;
+  --bp-cell: calc((var(--bp-w) - var(--bp-gap) * (var(--bp-n) - 1)) / var(--bp-n));
+  display: grid;
+  grid-template-columns: repeat(var(--bp-n), var(--bp-cell));
+  gap: var(--bp-gap);
+}
+
+.bluepuzzle-cell {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 140ms ease-in-out;
+}
+
+.bluepuzzle-cell:active {
+  scale: 0.9;
+}
+
+.bluepuzzle-cell-blue {
+  background: var(--accent);
+}
+
+.bluepuzzle-cell-orange {
+  background: #f97316;
+}
+
+/* Animasi game sengaja tetap jalan walau prefers-reduced-motion aktif:
+   geseran ubin dan balik huruf itu umpan balik permainan, bukan hiasan --
+   tanpa itu papan berubah tiba-tiba dan lebih sulit diikuti. */

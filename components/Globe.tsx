@@ -20,6 +20,8 @@ const GLOBE_CONFIG: COBEOptions = {
   markerColor: [251 / 255, 100 / 255, 21 / 255],
   glowColor: [1, 1, 1],
   markers: [
+    // Jakarta: kota tempat hitung mundur ini berjalan, jadi penandanya terbesar.
+    { location: [-6.2088, 106.8456], size: 0.12 },
     { location: [14.5995, 120.9842], size: 0.03 },
     { location: [19.076, 72.8777], size: 0.1 },
     { location: [23.8103, 90.4125], size: 0.05 },
@@ -43,6 +45,8 @@ export function Globe({
   let phi = 0;
   let width = 0;
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const globeRef = useRef<ReturnType<typeof createGlobe> | null>(null);
   const pointerInteracting = useRef<number | null>(null);
   const pointerInteractionMovement = useRef(0);
   const [r, setR] = useState(0);
@@ -89,13 +93,32 @@ export function Globe({
       onRender,
     });
 
+    globeRef.current = globe;
     setTimeout(() => (canvasRef.current!.style.opacity = "1"));
-    return () => globe.destroy();
+    return () => {
+      globeRef.current = null;
+      globe.destroy();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // cobe menggambar ulang kanvas ~1460x1460 tiap frame dan tidak berhenti
+  // sendiri saat elemennya disembunyikan (display:none tidak menghentikan
+  // requestAnimationFrame), jadi halaman ikut tersendat selama mode game.
+  // toggle() milik phenomenon menjeda loop-nya tanpa membuang konteks WebGL,
+  // jadi kembali terlihat tidak perlu membangun ulang globe (yang makan ~1
+  // detik karena mapSamples 16000).
+  useEffect(() => {
+    const box = boxRef.current;
+    if (!box) return;
+    const io = new IntersectionObserver(([e]) => globeRef.current?.toggle(e.isIntersecting));
+    io.observe(box);
+    return () => io.disconnect();
   }, []);
 
   return (
     <div
+      ref={boxRef}
       className={cn(
         "absolute inset-0 mx-auto aspect-[1/1] w-full max-w-[600px]",
         className,

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx test-schedule.ts && tsx test-chat.ts"
+    "test": "tsx test-schedule.ts && tsx test-chat.ts && tsx test-games.ts"
   },
   "dependencies": {
     "@leenguyen/react-flip-clock-countdown": "^1.7.2",
