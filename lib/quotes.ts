@@ -169,6 +169,7 @@ const KERJA = [
   "Nggak paham istilahnya? Catat, cari nanti. Jangan pura-pura ngerti.",
   "Sekali kamu paham polanya, sisanya jadi jauh lebih gampang.",
   "Kerjakan yang bikin kamu agak takut. Di situ kamu naik kelas.",
+  "semangat kerjanya",
   "Kalau hari ini banyak yang salah, artinya hari ini banyak yang kamu coba.",
   "Sisa magangmu terbatas. Ambil sebanyak mungkin selagi masih bisa nanya gratis.",
 ];
