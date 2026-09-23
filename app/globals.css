@@ -7,6 +7,14 @@
   --card: #ffffff;
   --accent: #1d4ed8;
   --line: #dee3e9;
+  /* Palet keping Block Blast. Mid-tone, sengaja bukan putih: --card di tema
+     terang juga putih, jadi keping putih akan hilang di kartu. */
+  --bb-1: #f59e0b;
+  --bb-2: #10b981;
+  --bb-3: #8b5cf6;
+  --bb-4: #ef4444;
+  --bb-5: #06b6d4;
+  --bb-6: #ec4899;
 }
 
 :root[data-theme="dark"] {
@@ -16,6 +24,12 @@
   --card: #141b23;
   --accent: #6d9bff;
   --line: #232d38;
+  --bb-1: #fbbf24;
+  --bb-2: #34d399;
+  --bb-3: #a78bfa;
+  --bb-4: #f87171;
+  --bb-5: #22d3ee;
+  --bb-6: #f472b6;
 }
 
 @theme inline {
@@ -362,17 +376,28 @@ body {
 /* ---------- Block Blast ---------- */
 
 .blockblast {
-  --bb-w: min(88vw, 58vh, 336px);
+  --bb-w: min(94vw, 58vh, 336px);
   width: var(--bb-w);
 }
 
+/* Rumus gap harus (n - 1), bukan (n + 1): gap cuma ada DI ANTARA sel, bukan
+   di tepi. Versi lama membuang ~8 px lebar. cellAt() di BlockBlast.tsx
+   menghitung step dari geometri papan dengan rumus yang sama, jadi keduanya
+   wajib cocok. */
 .blockblast-board {
   --bb-n: 8;
   --bb-gap: 4px;
-  --bb-cell: calc((var(--bb-w) - var(--bb-gap) * (var(--bb-n) + 1)) / var(--bb-n));
+  --bb-cell: calc((var(--bb-w) - var(--bb-gap) * (var(--bb-n) - 1)) / var(--bb-n));
+  /* Intensitas combo 0..1 dan durasi efek; komponen yang mengisinya. Nilai
+     bawaan dipakai kalau CSS ini dimuat tanpa komponennya (mis. cache lama). */
+  --bb-fx: 0;
+  --bb-clear-dur: 200ms;
+  --bb-shake-dur: 140ms;
+  position: relative; /* jangkar .bb-burst yang diposisikan absolut */
   display: grid;
   grid-template-columns: repeat(var(--bb-n), var(--bb-cell));
   gap: var(--bb-gap);
+  touch-action: manipulation; /* matikan zoom ketuk-ganda saat main */
 }
 
 .blockblast-cell {
@@ -390,27 +415,98 @@ body {
 }
 
 .blockblast-cell-on {
-  background: var(--accent);
+  background: var(--bb, var(--accent));
   box-shadow: none;
 }
 
 .blockblast-cell-preview {
-  background: color-mix(in oklab, var(--accent) 35%, var(--card));
+  background: color-mix(in oklab, var(--bb, var(--accent)) 40%, var(--card));
 }
 
-.blockblast-cell-clear {
-  animation: bb-clear 240ms ease-out both;
+/* ---------- Ledakan Block Blast ------------------------------------------
+   Sel yang terhapus sudah dikosongkan bbPlace, jadi tidak ada lagi yang bisa
+   dianimasikan di dalam grid. Komponen menaruh satu <span class="bb-burst">
+   absolut per sel terhapus, di posisi selnya, dengan warna aslinya. */
+
+.bb-burst {
+  position: absolute;
+  width: var(--bb-cell);
+  height: var(--bb-cell);
+  border-radius: 5px;
+  pointer-events: none;
+  background: var(--bb, var(--accent));
+  /* Kilau makin besar saat combo naik: 0 -> tidak ada, 1 -> 26px. */
+  box-shadow: 0 0 calc(var(--bb-fx) * 26px) calc(var(--bb-fx) * 5px)
+    color-mix(in oklab, var(--bb, var(--accent)) 70%, transparent);
+  animation: bb-burst var(--bb-clear-dur) ease-out both;
 }
 
-@keyframes bb-clear {
-  60% {
-    scale: 1.15;
-    background: color-mix(in oklab, var(--accent) 60%, #ffffff);
+@keyframes bb-burst {
+  0% {
+    scale: 1;
+    opacity: 1;
+  }
+  /* Membesar dulu, baru menyusut hilang -- pola yang sama dengan bb-clear
+     lama, tapi kini di elemen sendiri sehingga tidak menyentuh papan. */
+  45% {
+    scale: calc(1 + var(--bb-fx) * 0.55);
+    opacity: 1;
   }
   100% {
     scale: 0.1;
     opacity: 0;
   }
+}
+
+/* Getaran papan saat ada baris/kolom yang pecah. Dua keyframe identik
+   (bb-shake-0/1) supaya kelasnya bisa ditukar tiap ledakan -- mengganti nama
+   animasi memutar ulang animasinya tanpa me-remount papan. Amplitudonya ikut
+   combo lewat --bb-fx. */
+.bb-shake-0 {
+  animation: bb-shake-a var(--bb-shake-dur) ease-out;
+}
+
+.bb-shake-1 {
+  animation: bb-shake-b var(--bb-shake-dur) ease-out;
+}
+
+@keyframes bb-shake-a {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(calc(var(--bb-fx) * -5px), calc(var(--bb-fx) * 3px)); }
+  55% { transform: translate(calc(var(--bb-fx) * 4px), calc(var(--bb-fx) * -2px)); }
+  80% { transform: translate(calc(var(--bb-fx) * -2px), 0); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes bb-shake-b {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(calc(var(--bb-fx) * 5px), calc(var(--bb-fx) * -3px)); }
+  55% { transform: translate(calc(var(--bb-fx) * -4px), calc(var(--bb-fx) * 2px)); }
+  80% { transform: translate(calc(var(--bb-fx) * 2px), 0); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Label combo. Diposisikan di tengah papan; pointer-events:none supaya tidak
+   menghalangi ketukan ke sel di bawahnya. */
+.bb-combo {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  pointer-events: none;
+  font-size: calc(1rem + var(--bb-fx) * 1.1rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 2px 12px rgb(0 0 0 / 0.55);
+  animation: bb-combo-pop 620ms ease-out both;
+}
+
+@keyframes bb-combo-pop {
+  0% { scale: 0.4; opacity: 0; }
+  25% { scale: 1; opacity: 1; }
+  70% { scale: 1; opacity: 1; }
+  100% { scale: 1.3; opacity: 0; }
 }
 
 /* Tiga keping di tangan. Yang sedang terpilih diberi garis tebal. */
@@ -422,8 +518,14 @@ body {
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--card);
-  cursor: pointer;
+  cursor: grab;
+  /* WAJIB: tanpa ini halaman ikut menggulir saat keping diseret. */
+  touch-action: none;
   transition: border-color 120ms ease-in-out;
+}
+
+.blockblast-tray:active {
+  cursor: grabbing;
 }
 
 .blockblast-tray:disabled {
@@ -446,23 +548,40 @@ body {
 
 .blockblast-mini > span {
   border-radius: 2px;
-  background: var(--accent);
+  background: var(--bb, var(--accent));
 }
 
 /* ---------- Minesweeper ---------- */
 
 .mines {
-  --ms-w: min(88vw, 58vh, 336px);
-  width: var(--ms-w);
+  max-width: 94vw;
+}
+
+/* Papan yang lebih lebar dari layar digeser mendatar, bukan dikecilkan sampai
+   tidak bisa ditepuk. overscroll-behavior menahan geseran papan supaya tidak
+   ikut menyeret halaman di belakangnya. */
+.mines-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
 }
 
 .mines-board {
-  --ms-n: 9;
   --ms-gap: 3px;
-  --ms-cell: calc((var(--ms-w) - var(--ms-gap) * (var(--ms-n) + 1)) / var(--ms-n));
+  --ms-max: min(94vw, 62vh);
+  /* clamp: papan sempit melebar sampai 42px/sel, papan lebar menyusut sampai
+     28px lalu digeser mendatar -- tidak pernah lebih kecil, tidak bisa ditepuk.
+     --ms-n dipasang komponennya (lebar level). */
+  --ms-cell: clamp(
+    28px,
+    calc((var(--ms-max) - var(--ms-gap) * (var(--ms-n) - 1)) / var(--ms-n)),
+    42px
+  );
   display: grid;
   grid-template-columns: repeat(var(--ms-n), var(--ms-cell));
+  grid-auto-rows: var(--ms-cell);
   gap: var(--ms-gap);
+  width: max-content;
+  touch-action: manipulation;
 }
 
 .mines-cell {
@@ -473,6 +592,10 @@ body {
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
+  touch-action: manipulation;
+  /* iOS: matikan menu tekan-lama bawaan supaya tekan-lama kita yang jalan. */
+  -webkit-touch-callout: none;
+  user-select: none;
   transition: background-color 120ms ease-in-out;
 }
 
@@ -500,4 +623,35 @@ body {
   background: #ef4444;
   color: #fff;
   cursor: default;
+}
+
+/* Getaran papan saat kena ranjau. Tetap jalan walau prefers-reduced-motion
+   aktif -- alasannya sama dengan animasi game lain di atas: ini umpan balik
+   permainan, bukan hiasan. */
+.mines-boom {
+  animation: ms-boom 420ms ease-out;
+}
+
+@keyframes ms-boom {
+  0% {
+    transform: translate(0, 0);
+  }
+  15% {
+    transform: translate(-4px, 2px);
+  }
+  30% {
+    transform: translate(4px, -2px);
+  }
+  45% {
+    transform: translate(-3px, -1px);
+  }
+  60% {
+    transform: translate(3px, 1px);
+  }
+  80% {
+    transform: translate(-1px, 0);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
 }

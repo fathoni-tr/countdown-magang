@@ -205,16 +205,24 @@ export const BB_SHAPES = [
   [[1, 0], [1, 0], [1, 1]],
 ] as const;
 
-export type Piece = { id: number; cells: [number, number][] };
+export type Piece = { id: number; cells: [number, number][]; color: number };
+
+/** Jumlah warna keping. 0 = kosong, 1..BB_COLORS = warna (lihat --bb-* di globals.css). */
+export const BB_COLORS = 6;
 
 let bbSeq = 0;
 
-/** Keping acak dari 6 bentuk Tetris klasik, matriks 0/1. */
+/** Papan kosong. number[][] supaya warna ikut tersimpan di papan yang sama. */
+export function bbEmpty(): number[][] {
+  return Array.from({ length: BB_SIZE }, () => Array<number>(BB_SIZE).fill(0));
+}
+
+/** Keping acak dari 6 bentuk Tetris klasik, plus warnanya. */
 export function bbPiece(): Piece {
   const shape = BB_SHAPES[Math.floor(Math.random() * BB_SHAPES.length)];
   const cells: [number, number][] = [];
   shape.forEach((row, r) => row.forEach((v, c) => v && cells.push([r, c])));
-  return { id: ++bbSeq, cells };
+  return { id: ++bbSeq, cells, color: 1 + Math.floor(Math.random() * BB_COLORS) };
 }
 
 /** Rotasi 90° searah jarum jam. */
@@ -229,7 +237,7 @@ export function bbRotate(cells: [number, number][]): [number, number][] {
 
 /** true kalau keping muat di (r, c) tanpa keluar papan atau menumpuk. */
 export function bbFits(
-  board: (0 | 1)[][],
+  board: number[][],
   cells: [number, number][],
   r: number,
   c: number,
@@ -241,7 +249,7 @@ export function bbFits(
 }
 
 /** Cek apakah keping ini masih bisa diletakkan di mana pun. Kalau tidak, game over. */
-export function bbCanPlace(board: (0 | 1)[][], cells: [number, number][]): boolean {
+export function bbCanPlace(board: number[][], cells: [number, number][]): boolean {
   for (let r = 0; r < BB_SIZE; r++)
     for (let c = 0; c < BB_SIZE; c++)
       if (bbFits(board, cells, r, c)) return true;
@@ -249,7 +257,7 @@ export function bbCanPlace(board: (0 | 1)[][], cells: [number, number][]): boole
 }
 
 export type BbPlace = {
-  board: (0 | 1)[][];
+  board: number[][];
   cleared: [number, number][]; // baris penuh [r, -1], kolom penuh [-1, c]
   lines: number;
   gained: number;
@@ -260,21 +268,23 @@ export type BbPlace = {
  * daftar sel yang dihapus (untuk animasi), dan skor.
  */
 export function bbPlace(
-  board: (0 | 1)[][],
+  board: number[][],
   cells: [number, number][],
   r: number,
   c: number,
+  color = 1,
 ): BbPlace | null {
   if (!bbFits(board, cells, r, c)) return null;
-  const b = board.map((row) => [...row]) as (0 | 1)[][];
-  for (const [dr, dc] of cells) b[r + dr][c + dc] = 1;
+  const b = board.map((row) => [...row]);
+  for (const [dr, dc] of cells) b[r + dr][c + dc] = color;
 
   const fullR: number[] = [];
   const fullC: number[] = [];
+  // !== 0, bukan === 1: papan sekarang menyimpan warna, bukan cuma 0/1.
   for (let rr = 0; rr < BB_SIZE; rr++)
-    if (b[rr].every((v) => v === 1)) fullR.push(rr);
+    if (b[rr].every((v) => v !== 0)) fullR.push(rr);
   for (let cc = 0; cc < BB_SIZE; cc++)
-    if (b.every((row) => row[cc] === 1)) fullC.push(cc);
+    if (b.every((row) => row[cc] !== 0)) fullC.push(cc);
 
   const cleared: [number, number][] = [];
   for (const rr of fullR)
@@ -301,13 +311,22 @@ export type MineCell = {
   adjacent: number;
 };
 
-export const MS_W = 9;
-export const MS_H = 9;
-export const MS_MINES = 10;
+export type MsLevel = { id: string; name: string; w: number; h: number; mines: number };
 
-export function msEmpty(): MineCell[][] {
-  return Array.from({ length: MS_H }, () =>
-    Array.from({ length: MS_W }, () => ({
+// Papan yang lebih lebar dari layar ponsel digeser mendatar, bukan dikecilkan
+// sampai tidak bisa ditepuk (lihat .mines-scroll di globals.css).
+export const MS_LEVELS: readonly MsLevel[] = [
+  { id: "pemula", name: "Pemula", w: 9, h: 9, mines: 10 },
+  { id: "menengah", name: "Menengah", w: 12, h: 14, mines: 30 },
+  { id: "ahli", name: "Ahli", w: 16, h: 16, mines: 50 },
+] as const;
+
+export const msLevelOf = (id: string | null): MsLevel =>
+  MS_LEVELS.find((l) => l.id === id) ?? MS_LEVELS[0];
+
+export function msEmpty(lv: MsLevel): MineCell[][] {
+  return Array.from({ length: lv.h }, () =>
+    Array.from({ length: lv.w }, () => ({
       mine: false,
       revealed: false,
       flagged: false,
@@ -320,37 +339,42 @@ export function msEmpty(): MineCell[][] {
  * Pasang ranjau secara acak, kecuali sel aman pertama yang dibuka pemain.
  * Hitung jumlah ranjau tetangga untuk tiap sel.
  */
-export function msGenerate(safeR: number, safeC: number): MineCell[][] {
-  const g = msEmpty();
+export function msGenerate(lv: MsLevel, safeR: number, safeC: number): MineCell[][] {
+  const g = msEmpty(lv);
   let placed = 0;
-  while (placed < MS_MINES) {
-    const r = Math.floor(Math.random() * MS_H);
-    const c = Math.floor(Math.random() * MS_W);
-    // Sel pertama dan tetangganya boleh tidak boleh berisi ranjau.
+  // Sel pertama DAN 8 tetangganya bebas ranjau, jadi bukaan pertama selalu
+  // area kosong -- bukan angka yang langsung mentok.
+  while (placed < lv.mines) {
+    const r = Math.floor(Math.random() * lv.h);
+    const c = Math.floor(Math.random() * lv.w);
     if (g[r][c].mine || (Math.abs(r - safeR) <= 1 && Math.abs(c - safeC) <= 1)) continue;
     g[r][c].mine = true;
     placed++;
   }
-  for (let r = 0; r < MS_H; r++)
-    for (let c = 0; c < MS_W; c++) {
+  for (let r = 0; r < lv.h; r++)
+    for (let c = 0; c < lv.w; c++) {
       if (g[r][c].mine) continue;
       let n = 0;
       for (let dr = -1; dr <= 1; dr++)
         for (let dc = -1; dc <= 1; dc++) {
           const rr = r + dr, cc = c + dc;
-          if (rr >= 0 && rr < MS_H && cc >= 0 && cc < MS_W && g[rr][cc].mine) n++;
+          if (rr >= 0 && rr < lv.h && cc >= 0 && cc < lv.w && g[rr][cc].mine) n++;
         }
       g[r][c].adjacent = n;
     }
   return g;
 }
 
+/** Ukuran dibaca dari grid-nya, jadi tidak ada fungsi yang terikat satu level. */
+const msDims = (g: MineCell[][]) => ({ h: g.length, w: g[0]?.length ?? 0 });
+
 /**
  * Buka sel. Kalau kosong (0 tetangga), membuka seluruh area kosong yang
  * terhubung (flood fill). Mengembalikan papan baru. true kalau pemain kena ranjau.
  */
 export function msReveal(g: MineCell[][], r: number, c: number): { grid: MineCell[][]; dead: boolean } {
-  if (r < 0 || r >= MS_H || c < 0 || c >= MS_W) return { grid: g, dead: false };
+  const { h, w } = msDims(g);
+  if (r < 0 || r >= h || c < 0 || c >= w) return { grid: g, dead: false };
   if (g[r][c].revealed || g[r][c].flagged) return { grid: g, dead: false };
   const next = g.map((row) => row.map((cell) => ({ ...cell })));
   if (next[r][c].mine) {
@@ -367,7 +391,7 @@ export function msReveal(g: MineCell[][], r: number, c: number): { grid: MineCel
       for (let dr = -1; dr <= 1; dr++)
         for (let dc = -1; dc <= 1; dc++) {
           const nr = rr + dr, nc = cc + dc;
-          if (nr >= 0 && nr < MS_H && nc >= 0 && nc < MS_W && !next[nr][nc].revealed)
+          if (nr >= 0 && nr < h && nc >= 0 && nc < w && !next[nr][nc].revealed)
             stack.push([nr, nc]);
         }
   }
@@ -379,6 +403,37 @@ export function msFlag(g: MineCell[][], r: number, c: number): MineCell[][] {
   return g.map((row, ri) =>
     row.map((cell, ci) => (ri === r && ci === c ? { ...cell, flagged: !cell.flagged } : cell)),
   );
+}
+
+/**
+ * Chord: kalau jumlah bendera di sekitar angka sama dengan angkanya, buka semua
+ * tetangga yang belum ditandai. Bendera salah tempat -> kena ranjau; itu aturan
+ * Minesweeper, bukan bug.
+ */
+export function msChord(g: MineCell[][], r: number, c: number): { grid: MineCell[][]; dead: boolean } {
+  const { h, w } = msDims(g);
+  const cell = g[r]?.[c];
+  if (!cell?.revealed || cell.adjacent === 0) return { grid: g, dead: false };
+
+  let flags = 0;
+  const around: [number, number][] = [];
+  for (let dr = -1; dr <= 1; dr++)
+    for (let dc = -1; dc <= 1; dc++) {
+      if (!dr && !dc) continue;
+      const rr = r + dr, cc = c + dc;
+      if (rr < 0 || rr >= h || cc < 0 || cc >= w) continue;
+      if (g[rr][cc].flagged) flags++;
+      else if (!g[rr][cc].revealed) around.push([rr, cc]);
+    }
+  if (flags !== cell.adjacent || !around.length) return { grid: g, dead: false };
+
+  let next = g;
+  for (const [rr, cc] of around) {
+    const res = msReveal(next, rr, cc);
+    next = res.grid;
+    if (res.dead) return { grid: next, dead: true };
+  }
+  return { grid: next, dead: false };
 }
 
 export function msWon(g: MineCell[][]): boolean {

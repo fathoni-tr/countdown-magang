@@ -7,11 +7,11 @@ import {
   bbPlace,
   bbRotate,
   canMove,
-  MS_H,
-  MS_MINES,
-  MS_W,
+  MS_LEVELS,
+  msChord,
   msFlag,
   msGenerate,
+  msLevelOf,
   msReveal,
   msWon,
   nextHint,
@@ -298,12 +298,16 @@ check("game over saat tidak ada keping yang muat", () => {
 
 console.log("Minesweeper");
 
+// Level dasar dipakai semua cek Minesweeper; ukuran dibaca dari level, bukan
+// konstanta modul, supaya papan bisa berubah tanpa menyentuh tes.
+const LV = msLevelOf("pemula");
+
 check("ranjau tidak pernah di sel pertama atau tetangganya", () => {
   for (let i = 0; i < 200; i++) {
-    const g = msGenerate(4, 4);
+    const g = msGenerate(LV, 4, 4);
     let mines = 0;
-    for (let r = 0; r < MS_H; r++)
-      for (let c = 0; c < MS_W; c++) {
+    for (let r = 0; r < LV.h; r++)
+      for (let c = 0; c < LV.w; c++) {
         if (g[r][c].mine) {
           mines++;
           assert.ok(
@@ -312,27 +316,27 @@ check("ranjau tidak pernah di sel pertama atau tetangganya", () => {
           );
         }
       }
-    assert.equal(mines, MS_MINES);
+    assert.equal(mines, LV.mines);
   }
 });
 
 check("angka tetangga benar", () => {
-  const g = msGenerate(0, 0);
-  for (let r = 0; r < MS_H; r++)
-    for (let c = 0; c < MS_W; c++) {
+  const g = msGenerate(LV, 0, 0);
+  for (let r = 0; r < LV.h; r++)
+    for (let c = 0; c < LV.w; c++) {
       if (g[r][c].mine) continue;
       let hitung = 0;
       for (let dr = -1; dr <= 1; dr++)
         for (let dc = -1; dc <= 1; dc++) {
           const rr = r + dr, cc = c + dc;
-          if (rr >= 0 && rr < MS_H && cc >= 0 && cc < MS_W && g[rr][cc].mine) hitung++;
+          if (rr >= 0 && rr < LV.h && cc >= 0 && cc < LV.w && g[rr][cc].mine) hitung++;
         }
       assert.equal(g[r][c].adjacent, hitung);
     }
 });
 
 check("membuka ranjau = kalah", () => {
-  const g = msGenerate(4, 4);
+  const g = msGenerate(LV, 4, 4);
   const mine = g.flat().find((x) => x.mine)!;
   const r = g.findIndex((row) => row.some((x) => x.mine));
   const c = g[r].findIndex((x) => x.mine);
@@ -343,11 +347,11 @@ check("membuka ranjau = kalah", () => {
 });
 
 check("flood fill membuka area kosong", () => {
-  const g = msGenerate(4, 4);
+  const g = msGenerate(LV, 4, 4);
   // Cari sel aman dengan 0 tetangga (sudut sering begini).
   const kosong: [number, number] | null = (() => {
-    for (let r = 0; r < MS_H; r++)
-      for (let c = 0; c < MS_W; c++)
+    for (let r = 0; r < LV.h; r++)
+      for (let c = 0; c < LV.w; c++)
         if (!g[r][c].mine && g[r][c].adjacent === 0) return [r, c];
     return null;
   })();
@@ -361,7 +365,7 @@ check("flood fill membuka area kosong", () => {
 });
 
 check("buka sel yang ditandai tidak melukai", () => {
-  const g = msGenerate(4, 4);
+  const g = msGenerate(LV, 4, 4);
   const aman = g.flat().find((x) => !x.mine)!;
   const r = g.findIndex((row) => row.includes(aman));
   const c = g[r].indexOf(aman);
@@ -373,9 +377,9 @@ check("buka sel yang ditandai tidak melukai", () => {
 });
 
 check("menang saat semua sel aman terbuka", () => {
-  const g = msGenerate(4, 4);
-  for (let r = 0; r < MS_H; r++)
-    for (let c = 0; c < MS_W; c++)
+  const g = msGenerate(LV, 4, 4);
+  for (let r = 0; r < LV.h; r++)
+    for (let c = 0; c < LV.w; c++)
       if (!g[r][c].mine) g[r][c].revealed = true;
   assert.equal(msWon(g), true);
   // Satu sel aman belum dibuka -> belum menang.
