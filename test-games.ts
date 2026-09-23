@@ -1,7 +1,25 @@
 // Self-check logika game (2048 + Furdle). Jalankan: npx tsx test-games.ts
 // Tanpa framework. Gagal = throw.
 import assert from "node:assert/strict";
-import { canMove, nextHint, scoreGuess, slide, toGrid, type Tile } from "./lib/games";
+import {
+  bbCanPlace,
+  bbFits,
+  bbPlace,
+  bbRotate,
+  canMove,
+  MS_H,
+  MS_MINES,
+  MS_W,
+  msFlag,
+  msGenerate,
+  msReveal,
+  msWon,
+  nextHint,
+  scoreGuess,
+  slide,
+  toGrid,
+  type Tile,
+} from "./lib/games";
 import { ANSWERS, LENGTHS, WORDS } from "./lib/words";
 
 let n = 0;
@@ -206,3 +224,162 @@ check("bantuan membuka posisi yang belum tepat, lalu habis", () => {
 });
 
 console.log(`\n${n} pemeriksaan lolos.`);
+
+console.log("Block Blast");
+
+check("keping muat di sel kosong", () => {
+  const b = Array.from({ length: 8 }, () => Array<0 | 1>(8).fill(0));
+  assert.equal(bbFits(b, [[0, 0], [0, 1], [1, 0]], 0, 0), true);
+  assert.equal(bbFits(b, [[0, 0]], 7, 7), true);
+  assert.equal(bbFits(b, [[0, 0]], 8, 0), false); // di luar papan
+  assert.equal(bbFits(b, [[0, 0]], 0, 8), false);
+});
+
+check("keping tidak boleh menumpuk", () => {
+  const b = Array.from({ length: 8 }, () => Array<0 | 1>(8).fill(0));
+  b[0][1] = 1;
+  assert.equal(bbFits(b, [[0, 0], [0, 1]], 0, 0), false);
+  assert.equal(bbFits(b, [[0, 0], [0, 1]], 3, 3), true);
+});
+
+check("rotasi mempertahankan jumlah sel", () => {
+  const batang: [number, number][] = [[0, 0], [0, 1], [0, 2], [0, 3]];
+  const r1 = bbRotate(batang);
+  const r2 = bbRotate(r1);
+  const r3 = bbRotate(r2);
+  const r4 = bbRotate(r3);
+  assert.equal(r1.length, 4);
+  assert.equal(r2.length, 4);
+  assert.equal(r4.length, 4);
+  // Empat rotasi = identik.
+  assert.deepEqual(r4.sort(), batang.sort());
+  // Batang jadi vertikal.
+  assert.deepEqual(r1.sort(), [[0, 0], [1, 0], [2, 0], [3, 0]].sort());
+});
+
+check("meletakkan keping mengisi sel", () => {
+  const b = Array.from({ length: 8 }, () => Array<0 | 1>(8).fill(0));
+  const res = bbPlace(b, [[0, 0], [0, 1]], 3, 4);
+  assert.ok(res);
+  assert.equal(res!.board[3][4], 1);
+  assert.equal(res!.board[3][5], 1);
+  assert.equal(res!.cleared.length, 0);
+  assert.equal(res!.gained, 2);
+});
+
+check("baris penuh terhapus dan dapat skor", () => {
+  const b = Array.from({ length: 8 }, () => Array<0 | 1>(8).fill(0));
+  // Baris 0 hampir penuh, tinggal 2 sel terakhir.
+  for (let c = 0; c < 6; c++) b[0][c] = 1;
+  const res = bbPlace(b, [[0, 0], [0, 1]], 0, 6);
+  assert.ok(res);
+  assert.equal(res!.lines, 1);
+  assert.equal(res!.cleared.length, 8);
+  assert.equal(res!.board[0].every((v) => v === 0), true);
+  // 2 sel keping + 8 sel terhapus × 10 = 82.
+  assert.equal(res!.gained, 2 + 80);
+});
+
+check("meletakkan di luar papan gagal", () => {
+  const b = Array.from({ length: 8 }, () => Array<0 | 1>(8).fill(0));
+  // Satu sel di pojok masih muat; keping dua sel keluar papan.
+  assert.equal(bbPlace(b, [[0, 0], [0, 1]], 7, 7), null);
+  assert.equal(bbPlace(b, [[1, 0]], 7, 7), null); // baris di luar
+});
+
+check("game over saat tidak ada keping yang muat", () => {
+  const b = Array.from({ length: 8 }, () => Array<0 | 1>(8).fill(1));
+  b[0][0] = 0; // hanya satu sel kosong
+  const satu: [number, number][] = [[0, 0]];
+  assert.equal(bbCanPlace(b, satu), true);
+  const dua: [number, number][] = [[0, 0], [0, 1]];
+  assert.equal(bbCanPlace(b, dua), false);
+});
+
+console.log("Minesweeper");
+
+check("ranjau tidak pernah di sel pertama atau tetangganya", () => {
+  for (let i = 0; i < 200; i++) {
+    const g = msGenerate(4, 4);
+    let mines = 0;
+    for (let r = 0; r < MS_H; r++)
+      for (let c = 0; c < MS_W; c++) {
+        if (g[r][c].mine) {
+          mines++;
+          assert.ok(
+            Math.abs(r - 4) > 1 || Math.abs(c - 4) > 1,
+            "ranjau mendarat di area aman",
+          );
+        }
+      }
+    assert.equal(mines, MS_MINES);
+  }
+});
+
+check("angka tetangga benar", () => {
+  const g = msGenerate(0, 0);
+  for (let r = 0; r < MS_H; r++)
+    for (let c = 0; c < MS_W; c++) {
+      if (g[r][c].mine) continue;
+      let hitung = 0;
+      for (let dr = -1; dr <= 1; dr++)
+        for (let dc = -1; dc <= 1; dc++) {
+          const rr = r + dr, cc = c + dc;
+          if (rr >= 0 && rr < MS_H && cc >= 0 && cc < MS_W && g[rr][cc].mine) hitung++;
+        }
+      assert.equal(g[r][c].adjacent, hitung);
+    }
+});
+
+check("membuka ranjau = kalah", () => {
+  const g = msGenerate(4, 4);
+  const mine = g.flat().find((x) => x.mine)!;
+  const r = g.findIndex((row) => row.some((x) => x.mine));
+  const c = g[r].findIndex((x) => x.mine);
+  void mine;
+  const res = msReveal(g, r, c);
+  assert.equal(res.dead, true);
+  assert.equal(res.grid[r][c].revealed, true);
+});
+
+check("flood fill membuka area kosong", () => {
+  const g = msGenerate(4, 4);
+  // Cari sel aman dengan 0 tetangga (sudut sering begini).
+  const kosong: [number, number] | null = (() => {
+    for (let r = 0; r < MS_H; r++)
+      for (let c = 0; c < MS_W; c++)
+        if (!g[r][c].mine && g[r][c].adjacent === 0) return [r, c];
+    return null;
+  })();
+  if (kosong) {
+    const res = msReveal(g, kosong[0], kosong[1]);
+    const dibuka = res.grid.flat().filter((x) => x.revealed && !x.mine).length;
+    assert.ok(dibuka > 1, "flood fill membuka lebih dari satu sel");
+    // Semua sel yang dibuka dan bukan ranjau harus berdekatan dengan yang kosong.
+    assert.ok(res.grid.flat().some((x) => x.revealed && x.adjacent > 0));
+  }
+});
+
+check("buka sel yang ditandai tidak melukai", () => {
+  const g = msGenerate(4, 4);
+  const aman = g.flat().find((x) => !x.mine)!;
+  const r = g.findIndex((row) => row.includes(aman));
+  const c = g[r].indexOf(aman);
+  const f = msFlag(g, r, c);
+  assert.equal(f[r][c].flagged, true);
+  const res = msReveal(f, r, c);
+  assert.equal(res.grid[r][c].revealed, false, "sel ditandai ikut terbuka");
+  assert.equal(res.dead, false);
+});
+
+check("menang saat semua sel aman terbuka", () => {
+  const g = msGenerate(4, 4);
+  for (let r = 0; r < MS_H; r++)
+    for (let c = 0; c < MS_W; c++)
+      if (!g[r][c].mine) g[r][c].revealed = true;
+  assert.equal(msWon(g), true);
+  // Satu sel aman belum dibuka -> belum menang.
+  const belum = g.flat().find((x) => !x.mine && x.revealed)!;
+  belum.revealed = false;
+  assert.equal(msWon(g), false);
+});

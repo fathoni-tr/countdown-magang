@@ -135,7 +135,9 @@ export default function Countdown() {
 
     void loadHolidays([new Date().getFullYear(), END_TARGET.getFullYear()]);
     tick();
-    const id = setInterval(tick, 250);
+    // ponytail: 1 Hz, bukan 4 Hz. Satuan terkecil yang ditampilkan detik;
+    // confetti dan progress bar tidak butuh resolusi lebih tinggi dari itu.
+    const id = setInterval(tick, 1000);
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       clearInterval(id);

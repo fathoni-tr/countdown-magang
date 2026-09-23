@@ -4,8 +4,14 @@ import { ymd } from "./time";
 export type Holiday = { date: string; name: string; type: "nasional" | "cuti_bersama" };
 
 let map = new Map<string, Holiday>();
+let promise: Promise<void> | null = null;
 
 export async function loadHolidays(years: number[]): Promise<void> {
+  if (!years.length) return;
+  await (promise ??= loadHolidaysNow(years));
+}
+
+async function loadHolidaysNow(years: number[]): Promise<void> {
   const next = new Map<string, Holiday>();
   for (const y of [...new Set(years)]) {
     try {
@@ -15,6 +21,7 @@ export async function loadHolidays(years: number[]): Promise<void> {
     } catch { /* offline / tidak ada berkas: lewati */ }
   }
   map = next;
+  promise = null;
 }
 
 export const holidayOn = (d: Date) => map.get(ymd(d)) ?? null;

@@ -1,16 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import BluePuzzle from "./BluePuzzle";
-import Furdle from "./Furdle";
 import Game2048 from "./Game2048";
 
-// Urutan siklus tombol puzzle: Furdle -> 2048 -> Blue Puzzle.
+// ponytail: Furdle membawa lib/words.ts (95 KB kamus) dan Block Blast/Minesweeper
+// jarang dipakai. Muat hanya saat pemain benar-benar membukannya, bukan tiap
+// pengunjung halaman utama.
+const Furdle = dynamic(() => import("./Furdle"), { ssr: false });
+const BlockBlast = dynamic(() => import("./BlockBlast"), { ssr: false });
+const Minesweeper = dynamic(() => import("./Minesweeper"), { ssr: false });
+
+// Urutan siklus tombol puzzle: Furdle -> 2048 -> Blue Puzzle -> Block Blast -> Minesweeper.
 const GAMES = [
   { name: "Furdle", Comp: Furdle },
   { name: "2048", Comp: Game2048 },
   { name: "Blue Puzzle", Comp: BluePuzzle },
-];
+  { name: "Block Blast", Comp: BlockBlast },
+  { name: "Minesweeper", Comp: Minesweeper },
+] as const;
 
 const OFF = -1;
 

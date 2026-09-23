@@ -358,3 +358,146 @@ body {
 /* Animasi game sengaja tetap jalan walau prefers-reduced-motion aktif:
    geseran ubin dan balik huruf itu umpan balik permainan, bukan hiasan --
    tanpa itu papan berubah tiba-tiba dan lebih sulit diikuti. */
+
+/* ---------- Block Blast ---------- */
+
+.blockblast {
+  --bb-w: min(88vw, 58vh, 336px);
+  width: var(--bb-w);
+}
+
+.blockblast-board {
+  --bb-n: 8;
+  --bb-gap: 4px;
+  --bb-cell: calc((var(--bb-w) - var(--bb-gap) * (var(--bb-n) + 1)) / var(--bb-n));
+  display: grid;
+  grid-template-columns: repeat(var(--bb-n), var(--bb-cell));
+  gap: var(--bb-gap);
+}
+
+.blockblast-cell {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 5px;
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--line);
+  cursor: pointer;
+  transition: background-color 120ms ease-in-out, scale 120ms ease-in-out;
+}
+
+.blockblast-cell:active {
+  scale: 0.92;
+}
+
+.blockblast-cell-on {
+  background: var(--accent);
+  box-shadow: none;
+}
+
+.blockblast-cell-preview {
+  background: color-mix(in oklab, var(--accent) 35%, var(--card));
+}
+
+.blockblast-cell-clear {
+  animation: bb-clear 240ms ease-out both;
+}
+
+@keyframes bb-clear {
+  60% {
+    scale: 1.15;
+    background: color-mix(in oklab, var(--accent) 60%, #ffffff);
+  }
+  100% {
+    scale: 0.1;
+    opacity: 0;
+  }
+}
+
+/* Tiga keping di tangan. Yang sedang terpilih diberi garis tebal. */
+.blockblast-tray {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  cursor: pointer;
+  transition: border-color 120ms ease-in-out;
+}
+
+.blockblast-tray:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.blockblast-tray-sel {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Miniatur keping: grid 4x4 cukup untuk semua bentuk (batang 4 sel). */
+.blockblast-mini {
+  display: grid;
+  grid-template-columns: repeat(4, 9px);
+  grid-template-rows: repeat(4, 9px);
+  gap: 2px;
+}
+
+.blockblast-mini > span {
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+/* ---------- Minesweeper ---------- */
+
+.mines {
+  --ms-w: min(88vw, 58vh, 336px);
+  width: var(--ms-w);
+}
+
+.mines-board {
+  --ms-n: 9;
+  --ms-gap: 3px;
+  --ms-cell: calc((var(--ms-w) - var(--ms-gap) * (var(--ms-n) + 1)) / var(--ms-n));
+  display: grid;
+  grid-template-columns: repeat(var(--ms-n), var(--ms-cell));
+  gap: var(--ms-gap);
+}
+
+.mines-cell {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 5px;
+  font-size: calc(var(--ms-cell) * 0.5);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 120ms ease-in-out;
+}
+
+.mines-cell-hidden {
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.mines-cell-hidden:hover {
+  background: color-mix(in oklab, var(--accent) 15%, var(--card));
+}
+
+.mines-cell-hidden:active {
+  scale: 0.92;
+}
+
+.mines-cell-open {
+  background: color-mix(in oklab, var(--bg) 55%, transparent);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--dim);
+  cursor: default;
+}
+
+.mines-cell-mine {
+  background: #ef4444;
+  color: #fff;
+  cursor: default;
+}
