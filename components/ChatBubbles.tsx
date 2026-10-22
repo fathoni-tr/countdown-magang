@@ -18,6 +18,7 @@ const TOLAKAN: Record<string, string> = {
   rate: "Sabar, satu pesan tiap 3 detik.",
   "too-long": `Maksimal ${MAX_LEN} karakter.`,
   "bad-word": "Pesannya kurang ramah, ganti dulu.",
+  "too-large": `Maksimal ${MAX_LEN} karakter.`,
 };
 
 export default function ChatBubbles() {
@@ -28,22 +29,28 @@ export default function ChatBubbles() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Satu koneksi SSE selama halaman terbuka. EventSource menyambung ulang
-  // sendiri kalau fungsi Vercel kehabisan durasi.
+  // sendiri kalau fungsi Vercel kehabisan durasi -- TAPI berhenti total kalau
+  // server menolak (503 saat plafon stream penuh). Untuk kasus itu disambung
+  // ulang manual, sengaja lambat (30 detik) supaya tidak ikut membanjiri.
   useEffect(() => {
-    const es = new EventSource("/api/chat");
+    let es: EventSource | null = null;
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    let dead = false;
     const timers = new Set<ReturnType<typeof setTimeout>>();
 
-    es.onmessage = (e) => {
+    const onMessage = (e: MessageEvent) => {
       let m: { id: string; text: string };
       try {
         m = JSON.parse(e.data);
       } catch {
         return;
       }
+      // Data dari jaringan: pastikan bentuknya benar sebelum dirender.
+      if (typeof m?.id !== "string" || typeof m?.text !== "string") return;
 
       const b: Bubble = {
         id: m.id,
-        text: m.text,
+        text: m.text.slice(0, MAX_LEN),
         x: 12 + Math.random() * 76,
         drift: 8 + Math.random() * 6,
         wig: 1.1 + Math.random() * 0.6,
@@ -58,8 +65,22 @@ export default function ChatBubbles() {
       timers.add(t);
     };
 
+    const connect = () => {
+      if (dead) return;
+      es = new EventSource("/api/chat");
+      es.onmessage = onMessage;
+      es.onerror = () => {
+        if (es?.readyState !== EventSource.CLOSED) return; // masih mencoba sendiri
+        es.close();
+        retry = setTimeout(connect, 30_000);
+      };
+    };
+    connect();
+
     return () => {
-      es.close();
+      dead = true;
+      es?.close();
+      clearTimeout(retry);
       timers.forEach(clearTimeout);
     };
   }, []);

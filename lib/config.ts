@@ -1,5 +1,8 @@
 // Satu-satunya sumber kebenaran untuk seluruh angkatan. Ubah nilai = redeploy.
 export const CONFIG = {
+  // Alamat publik situs. Dipakai untuk link preview (WhatsApp, Telegram, X, dll.),
+  // sitemap, dan robots.txt -- semuanya butuh URL lengkap, bukan path relatif.
+  SITE_URL: "https://countdown-magang.vercel.app",
   END_TARGET: { y: 2027, m: 0, d: 29, hour: 16, minute: 0 },
   // ponytail: null = progress bar tidak dirender. Isi { y, m, d } untuk mengaktifkan (PRD §13).
   INTERNSHIP_START: null as { y: number; m: number; d: number } | null,

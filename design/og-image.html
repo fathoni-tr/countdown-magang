@@ -1,0 +1,110 @@
+<!--
+  Sumber app/opengraph-image.png (gambar link preview WhatsApp/Telegram/X).
+  Cara membuat ulang setelah mengganti tanggal: buka file ini di Chrome,
+  DevTools -> Toggle device toolbar -> ukuran 1200 x 630, lalu
+  Ctrl+Shift+P -> "Capture screenshot". Simpan sebagai app/opengraph-image.png.
+  Isi penting sengaja di tengah: thumbnail kecil WhatsApp memotong jadi persegi.
+-->
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=IBM+Plex+Sans:wght@400;600;700&display=block" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    background: #0b0f14;
+    color: #eef2f6;
+    font-family: "IBM Plex Sans", sans-serif;
+    position: relative;
+  }
+  /* Globe: cahaya + bola titik, meniru globe cobe di situs. */
+  .glow {
+    position: absolute; left: 50%; top: 52%;
+    width: 560px; height: 560px; translate: -50% -50%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, rgb(109 155 255 / 0.18), rgb(109 155 255 / 0.06) 55%, transparent 70%);
+    filter: blur(6px);
+  }
+  .globe {
+    position: absolute; left: 50%; top: 52%;
+    width: 430px; height: 430px; translate: -50% -50%;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 35% 30%, rgb(255 255 255 / 0.10), transparent 60%),
+      radial-gradient(rgb(148 161 174 / 0.35) 1.2px, transparent 1.6px) 0 0 / 11px 11px,
+      #10161e;
+    box-shadow: 0 0 80px 10px rgb(109 155 255 / 0.12), inset -40px -50px 90px rgb(0 0 0 / 0.55);
+    opacity: 0.75;
+  }
+  .dot { position: absolute; width: 12px; height: 12px; border-radius: 50%; background: #f97316; box-shadow: 0 0 14px #f97316; }
+
+  .wrap {
+    position: relative; z-index: 1; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 26px; text-align: center;
+  }
+  .title {
+    font-family: "Audiowide", sans-serif;
+    font-size: 64px; line-height: 1.02; letter-spacing: 0.14em;
+    /* letter-spacing menambah ruang di kanan huruf terakhir; geser balik. */
+    padding-left: 0.14em;
+  }
+  .tiles { display: flex; align-items: flex-start; gap: 18px; }
+  .group { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .pair { display: flex; gap: 8px; }
+  .tile {
+    position: relative; width: 74px; height: 104px;
+    display: grid; place-content: center;
+    background: #141b23; border-radius: 10px;
+    font-weight: 700; font-size: 72px; line-height: 1; color: #eef2f6;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.45);
+  }
+  .tile::after {
+    content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+    background: rgb(148 161 174 / 0.35);
+  }
+  .sep { font-size: 52px; font-weight: 700; color: #94a1ae; padding-top: 18px; }
+  .label { font-size: 15px; font-weight: 600; letter-spacing: 0.28em; color: #94a1ae; padding-left: 0.28em; }
+  .when { font-size: 26px; font-weight: 600; color: #eef2f6; }
+  .when b { color: #6d9bff; font-weight: 700; }
+  .url {
+    position: absolute; left: 0; right: 0; bottom: 30px; z-index: 1;
+    text-align: center; font-size: 19px; letter-spacing: 0.04em; color: #94a1ae;
+  }
+</style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="globe"></div>
+  <span class="dot" style="left: 738px; top: 516px"></span>
+  <span class="dot" style="left: 448px; top: 512px; width: 9px; height: 9px"></span>
+
+  <div class="wrap">
+    <div class="title">COUNTDOWN<br />MAGANG</div>
+
+    <div class="tiles">
+      <div class="group">
+        <div class="pair"><div class="tile">2</div><div class="tile">9</div></div>
+        <div class="label">TGL</div>
+      </div>
+      <div class="sep">:</div>
+      <div class="group">
+        <div class="pair"><div class="tile">0</div><div class="tile">1</div></div>
+        <div class="label">BLN</div>
+      </div>
+      <div class="sep">:</div>
+      <div class="group">
+        <div class="pair"><div class="tile">2</div><div class="tile">7</div></div>
+        <div class="label">THN</div>
+      </div>
+    </div>
+
+    <div class="when">Menuju <b>Jumat, 29 Januari 2027</b> · 16.00</div>
+  </div>
+
+  <div class="url">countdown-magang.vercel.app</div>
+</body>
+</html>

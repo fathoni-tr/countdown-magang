@@ -13,6 +13,7 @@ The UI is in Bahasa Indonesia. Built with Next.js 16, React 19, and Tailwind CSS
 - **Anonymous bubble chat** — messages float up the screen for every visitor online at that moment, then vanish after 5 seconds. No accounts, no database, no history.
 - **Games**: Furdle (an Indonesian Wordle with 4–6 letter words), 2048, Blue Puzzle, Block Blast (drag & drop, combos), and Minesweeper (3 levels, chording, long-press to flag on touch screens).
 - **Confetti** when the workday ends (once per day per device) and when the internship is over.
+- **Link previews** with an image and description when shared on WhatsApp, Telegram, X, and others, plus `robots.txt` and `sitemap.xml` for search engines.
 - Light/dark theme, an installable PWA, and a mobile-friendly layout.
 
 ## Getting started
@@ -43,15 +44,16 @@ No environment variables are required.
 Every date and working hour lives in one file, [`lib/config.ts`](lib/config.ts):
 
 ```ts
+SITE_URL:   "https://countdown-magang.vercel.app",          // your deployed address
 END_TARGET: { y: 2027, m: 0, d: 29, hour: 16, minute: 0 }, // m is 0-based: 0 = January
 WORK_START: { hour: 7, minute: 30 },
 WORK_END:   { hour: 16, minute: 0 },
 WORK_DAYS:  [1, 2, 3, 4, 5],                                // 0 = Sunday
 ```
 
-Change the values and redeploy. Also update:
+Change the values and redeploy. The page title and the link-preview text are built from these values automatically. Also update:
 
-- the page title and description in [`app/layout.tsx`](app/layout.tsx), and
+- the **link-preview image** `app/opengraph-image.png` (1200 × 630), which shows the target date. Its source is [`design/og-image.html`](design/og-image.html) — edit the date there, open it in Chrome at 1200 × 630 and capture a screenshot (instructions are at the top of the file). Keep the important content in the middle: WhatsApp crops small previews to a square. Update `app/opengraph-image.alt.txt` to match.
 - the holiday lists in [`public/data/holidays-<year>.json`](public/data/) for every year your countdown covers. Each entry looks like:
 
   ```json

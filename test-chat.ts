@@ -2,7 +2,18 @@
 // Jalankan: npx tsx test-chat.ts
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { MAX_LEN, RATE_MS, publish, rateLimit, subscribe, validate } from "./lib/chat-bus";
+import {
+  clientIp,
+  GLOBAL_PER_SEC,
+  MAX_LEN,
+  MAX_STREAMS_PER_IP,
+  RATE_MS,
+  publish,
+  rateLimit,
+  streamCount,
+  subscribe,
+  validate,
+} from "./lib/chat-bus";
 
 // --- validate -------------------------------------------------------------
 assert.deepEqual(validate("  halo   dunia  "), { ok: true, text: "halo dunia" });
@@ -71,16 +82,61 @@ assert.equal(rateLimit("1.1.1.1", t0 + RATE_MS - 1), false, "terlalu cepat");
 assert.equal(rateLimit("1.1.1.1", t0 + RATE_MS), true, "sudah lewat jendela");
 assert.equal(rateLimit("2.2.2.2", t0), true, "IP lain tidak ikut kena");
 
+// Plafon global: banyak IP berbeda dalam satu detik tetap dibatasi total.
+{
+  const t = 50_000_000;
+  let lolos = 0;
+  for (let i = 0; i < GLOBAL_PER_SEC * 3; i++) if (rateLimit(`10.0.0.${i}`, t)) lolos++;
+  assert.equal(lolos, GLOBAL_PER_SEC, "plafon global per detik tidak berlaku");
+  assert.equal(rateLimit("10.9.9.9", t + 1000), true, "detik berikutnya buka lagi");
+}
+
+// --- IP klien ---------------------------------------------------------------
+assert.equal(clientIp(new Headers({ "x-real-ip": "9.9.9.9" })), "9.9.9.9");
+assert.equal(clientIp(new Headers({ "x-forwarded-for": "8.8.8.8, 10.0.0.1" })), "8.8.8.8");
+assert.equal(clientIp(new Headers()), "local");
+assert.equal(clientIp(new Headers({ "x-real-ip": "x".repeat(5000) })).length, 64, "kunci Map dibatasi");
+
+// --- karakter tak terlihat & huruf hias -------------------------------------
+for (const s of [
+  "an\u200Bjing", // zero-width space di tengah kata
+  "an\u200Djing", // zero-width joiner
+  "ａｎｊｉｎｇ", // huruf lebar penuh
+  "𝐚𝐧𝐣𝐢𝐧𝐠", // huruf tebal matematika
+])
+  assert.deepEqual(validate(s), { ok: false, reason: "bad-word" }, JSON.stringify(s));
+// Bidi override dibuang: teks tampil sesuai urutan aslinya, bukan dibalik.
+assert.deepEqual(validate("\u202Egnijna"), { ok: true, text: "gnijna" }, "bidi override dibuang");
+assert.deepEqual(validate("ha\u200Blo\u0000"), { ok: true, text: "halo" }, "karakter tak terlihat dibuang");
+assert.deepEqual(validate("baris\nbaru"), { ok: true, text: "baris baru" }, "baris baru tetap jadi spasi");
+
 // --- pub/sub --------------------------------------------------------------
 const diterima: string[] = [];
-const off = subscribe((m) => diterima.push(m.text));
+const off = subscribe((m) => diterima.push(m.text))!;
 subscribe(() => {
   throw new Error("pendengar rusak");
 }); // tidak boleh menjatuhkan yang lain
 publish("halo");
 assert.deepEqual(diterima, ["halo"]);
 off();
+off(); // dua kali tidak boleh membuat hitungan negatif
 publish("setelah unsubscribe");
 assert.deepEqual(diterima, ["halo"], "unsubscribe berhenti menerima");
+assert.equal(streamCount(), 0, "pendengar rusak ikut dilepas");
+
+// Plafon stream per IP: yang ke-(N+1) ditolak, IP lain tetap boleh, dan slot
+// kembali setelah dilepas.
+{
+  const offs = Array.from({ length: MAX_STREAMS_PER_IP }, () => subscribe(() => {}, "7.7.7.7"));
+  assert.ok(offs.every(Boolean));
+  assert.equal(subscribe(() => {}, "7.7.7.7"), null, "melewati plafon per IP");
+  const lain = subscribe(() => {}, "6.6.6.6");
+  assert.ok(lain, "IP lain tidak ikut terkunci");
+  offs[0]!();
+  const lagi = subscribe(() => {}, "7.7.7.7");
+  assert.ok(lagi, "slot kembali setelah dilepas");
+  [...offs.slice(1), lain, lagi].forEach((f) => f!());
+  assert.equal(streamCount(), 0);
+}
 
 console.log("test-chat: semua lolos");
