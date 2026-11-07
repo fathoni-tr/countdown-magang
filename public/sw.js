@@ -1,8 +1,8 @@
 // ponytail: HTML dan data selalu ambil jaringan dulu, jadi deploy baru langsung
 // kelihatan tanpa hard reset. Cache cuma cadangan waktu offline. Aset ber-hash
 // di /_next/static isinya tidak pernah berubah, jadi aman diambil dari cache.
-const CACHE = "intern-countdown-v3";
-const OFFLINE = ["/", "/manifest.json", "/data/holidays-2026.json", "/data/holidays-2027.json"];
+const CACHE = "intern-countdown-v4";
+const OFFLINE = ["/", "/manifest.webmanifest", "/data/holidays-2026.json", "/data/holidays-2027.json"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(OFFLINE)).then(() => self.skipWaiting()));

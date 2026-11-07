@@ -13,7 +13,8 @@ The UI is in Bahasa Indonesia. Built with Next.js 16, React 19, and Tailwind CSS
 - **Anonymous bubble chat** — messages float up the screen for every visitor online at that moment, then vanish after 5 seconds. No accounts, no database, no history.
 - **Games**: Furdle (an Indonesian Wordle with 4–6 letter words), 2048, Blue Puzzle, Block Blast (drag & drop, combos), and Minesweeper (3 levels, chording, long-press to flag on touch screens).
 - **Confetti** when the workday ends (once per day per device) and when the internship is over.
-- **Link previews** with an image and description when shared on WhatsApp, Telegram, X, and others, plus `robots.txt` and `sitemap.xml` for search engines.
+- **Link previews** with an image and description when shared on WhatsApp, Telegram, X, and others.
+- **Search & AI discoverability**: `robots.txt`, `sitemap.xml`, schema.org JSON-LD (`WebSite` + `WebApplication`), a text summary in the static HTML for crawlers that don't run JavaScript, and [`/llms.txt`](https://llmstxt.org) for AI agents.
 - Light/dark theme, an installable PWA, and a mobile-friendly layout.
 
 ## Getting started
@@ -37,7 +38,7 @@ Then open <http://localhost:3000>.
 | `npm test`      | Logic checks for the schedule, chat, and games (via `tsx`) |
 | `npm run lint`  | ESLint                                                     |
 
-No environment variables are required.
+No environment variables are required. Optional: `GOOGLE_SITE_VERIFICATION` — the code from Google Search Console's "HTML tag" method; when set, the `google-site-verification` meta tag is added at build time.
 
 ## Using it for your own internship
 
@@ -53,6 +54,7 @@ WORK_DAYS:  [1, 2, 3, 4, 5],                                // 0 = Sunday
 
 Change the values and redeploy. The page title and the link-preview text are built from these values automatically. Also update:
 
+- `ORG` (campus/company name, currently `ITPLN`), `BATCH` (cohort label in the heading, currently `2023`), `SITE_NAME`, and `REPO_URL` in [`lib/seo.ts`](lib/seo.ts) — they feed the page title, description, search keywords, JSON-LD, and `/llms.txt`.
 - the **link-preview image** `app/opengraph-image.png` (1200 × 630), which shows the target date. Its source is [`design/og-image.html`](design/og-image.html) — edit the date there, open it in Chrome at 1200 × 630 and capture a screenshot (instructions are at the top of the file). Keep the important content in the middle: WhatsApp crops small previews to a square. Update `app/opengraph-image.alt.txt` to match.
 - the holiday lists in [`public/data/holidays-<year>.json`](public/data/) for every year your countdown covers. Each entry looks like:
 
@@ -67,7 +69,10 @@ Change the values and redeploy. The page title and the link-preview text are bui
 ```
 app/
   page.tsx            Main page (static)
-  layout.tsx          Fonts, metadata, analytics
+  layout.tsx          Fonts, metadata, JSON-LD, analytics
+  manifest.ts         PWA manifest
+  llms.txt/route.ts   Plain-text summary for AI agents
+  robots.ts, sitemap.ts
   globals.css         Theme colours and all game styles
   api/chat/route.ts   Chat endpoint: POST sends, GET streams (SSE)
 components/
@@ -79,6 +84,7 @@ components/
   games/              One component per game + GameDock (switcher)
 lib/
   config.ts           Dates and working hours — the single source of truth
+  seo.ts              Title, description, keywords, JSON-LD (built from config)
   schedule.ts         Time-left calculations
   holidays.ts         Loads public/data/holidays-*.json
   quotes.ts           Quote sets by mood and weekday

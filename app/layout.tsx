@@ -1,7 +1,17 @@
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Audiowide, IBM_Plex_Sans } from "next/font/google";
-import { CONFIG, END_TARGET } from "@/lib/config";
+import {
+  DESCRIPTION,
+  JSON_LD,
+  HEADING,
+  KEYWORDS,
+  REPO_URL,
+  SITE_NAME,
+  SITE_URL,
+  TARGET_LONG,
+  TITLE,
+} from "@/lib/seo";
 import "./globals.css";
 
 const plex = IBM_Plex_Sans({
@@ -16,43 +26,47 @@ const audiowide = Audiowide({
   weight: "400",
 });
 
-// Tanggal dibangun dari CONFIG, jadi teks preview tidak bisa ketinggalan kalau
-// tanggal selesai magang diubah. Contoh: "Jumat, 29 Januari 2027 pukul 16.00".
-const TARGET = new Intl.DateTimeFormat("id-ID", {
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-}).format(END_TARGET);
-const JAM = `${String(CONFIG.END_TARGET.hour).padStart(2, "0")}.${String(CONFIG.END_TARGET.minute).padStart(2, "0")}`;
-
-const TITLE = "Countdown Magang";
-// Kalimat pertama = inti yang tetap terbaca walau WhatsApp memotongnya.
-const DESCRIPTION = `Hitung mundur selesai magang: ${TARGET} pukul ${JAM}. Mode hari kerja, kata semangat harian, chat anonim, dan mini game buat teman-teman magang.`;
-
+// Judul, deskripsi, dan JSON-LD dibangun dari CONFIG di lib/seo.ts.
 // Gambar preview tidak ditulis di sini: app/opengraph-image.png (+ .alt.txt)
-// otomatis dipasang Next.js sebagai og:image beserta ukurannya.
+// otomatis dipasang Next.js sebagai og:image beserta ukurannya. Manifest juga
+// otomatis dari app/manifest.ts.
+const SHARE_TITLE = `${HEADING} — sisa waktu menuju ${TARGET_LONG}`;
+
+// Kode verifikasi Google Search Console (opsional). Isi env
+// GOOGLE_SITE_VERIFICATION di Vercel lalu redeploy; kosong = tag tidak dibuat.
+const GOOGLE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION;
+
 export const metadata: Metadata = {
   // Wajib untuk link preview: og:image harus URL lengkap, dan WhatsApp/Telegram
   // tidak mau menebak domainnya dari path relatif.
-  metadataBase: new URL(CONFIG.SITE_URL),
-  title: `${TITLE} — ${TARGET}`,
+  metadataBase: new URL(SITE_URL),
+  title: TITLE,
   description: DESCRIPTION,
-  applicationName: TITLE,
-  manifest: "/manifest.json",
+  applicationName: SITE_NAME,
+  keywords: KEYWORDS,
+  category: "productivity",
+  authors: [{ name: "fathoni-tr", url: REPO_URL }],
+  creator: "fathoni-tr",
   alternates: { canonical: "/" },
+  // Izinkan Google menampilkan cuplikan teks dan gambar besar di hasil pencarian.
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
+  ...(GOOGLE_VERIFICATION ? { verification: { google: GOOGLE_VERIFICATION } } : {}),
   openGraph: {
     type: "website",
     url: "/",
-    siteName: TITLE,
+    siteName: SITE_NAME,
     locale: "id_ID",
-    title: `${TITLE} — sisa waktu menuju ${TARGET}`,
+    title: SHARE_TITLE,
     description: DESCRIPTION,
   },
   twitter: {
     // Kartu besar: gambar penuh di atas judul, bukan thumbnail kecil di samping.
     card: "summary_large_image",
-    title: `${TITLE} — sisa waktu menuju ${TARGET}`,
+    title: SHARE_TITLE,
     description: DESCRIPTION,
   },
 };
@@ -60,11 +74,20 @@ export const metadata: Metadata = {
 // interactiveWidget: papan ketik ponsel memperkecil viewport, bukan menutupi
 // halaman. Tanpa ini kolom tulis pesan (position: fixed) bisa tersembunyi di
 // belakang papan ketik, terutama di Safari iOS.
+// themeColor = --bg di globals.css (warna bilah browser di ponsel).
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   interactiveWidget: "resizes-content",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f7f9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b0f14" },
+  ],
 };
+
+// JSON-LD bukan skrip yang dijalankan, jadi aman di bawah CSP. "<" di-escape
+// sesuai saran dokumentasi Next.js (guides/json-ld) supaya tidak bisa menutup tag.
+const jsonLd = JSON.stringify(JSON_LD).replace(/</g, "\\u003c");
 
 // Terapkan tema sebelum paint pertama supaya tidak berkedip.
 const themeScript = `try{var t=localStorage.getItem('theme')||'system';document.documentElement.dataset.theme=t==='system'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):t}catch(e){}`;
@@ -78,6 +101,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       </head>
       <body className="min-h-full font-sans">
         {children}

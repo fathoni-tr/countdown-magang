@@ -6,6 +6,7 @@ import InfoBar from "@/components/InfoBar";
 import GameDock from "@/components/games/GameDock";
 import { AnimatedThemeToggler } from "@/components/magicui/animated-theme-toggler";
 import { END_TARGET } from "@/lib/config";
+import { DESCRIPTION, FEATURES, HEADING, INTRO, TARGET_TIME } from "@/lib/seo";
 import { fmtDate } from "@/lib/time";
 
 export const dynamic = "force-static";
@@ -23,11 +24,11 @@ export default function Page() {
         <Globe className="max-w-none" />
       </div>
 
-      <h1 className="relative font-display text-2xl uppercase tracking-[0.18em] text-[var(--fg)] sm:text-4xl">
-        COUNTDOWN MAGANG
+      <h1 className="relative text-balance font-display text-2xl uppercase tracking-[0.18em] text-[var(--fg)] sm:text-4xl">
+        {HEADING}
       </h1>
       <p className="game-hide relative mb-6 text-sm text-[var(--dim)]">
-        {fmtDate(END_TARGET)} · 16.00 waktu setempat
+        {fmtDate(END_TARGET)} · {TARGET_TIME} waktu setempat
       </p>
       <div className="relative">
         <Countdown />
@@ -41,6 +42,21 @@ export default function Page() {
 
       <GameDock />
       <ChatBubbles />
+
+      {/* Ringkasan teks untuk pembaca layar, mesin pencari, dan AI agent: angka
+          hitung mundur, kata semangat, dan game baru muncul setelah JavaScript
+          jalan, jadi tanpa ini HTML statisnya cuma berisi judul. Isinya sama
+          dengan yang tampil di layar (bukan daftar kata kunci). */}
+      <section className="sr-only" aria-labelledby="tentang">
+        <h2 id="tentang">Tentang {HEADING}</h2>
+        <p>{INTRO}</p>
+        <p>{DESCRIPTION}</p>
+        <ul>
+          {FEATURES.map((f) => (
+            <li key={f}>{f}</li>
+          ))}
+        </ul>
+      </section>
     </main>
   );
 }
