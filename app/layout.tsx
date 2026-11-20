@@ -28,7 +28,7 @@ const audiowide = Audiowide({
 });
 
 // Judul, deskripsi, dan JSON-LD dibangun dari CONFIG di lib/seo.ts.
-// Gambar preview tidak ditulis di sini: app/opengraph-image.png (+ .alt.txt)
+// Gambar preview tidak ditulis di sini: app/opengraph-image.tsx (gambar + alt)
 // otomatis dipasang Next.js sebagai og:image beserta ukurannya. Manifest juga
 // otomatis dari app/manifest.ts.
 const SHARE_TITLE = `${HEADING} — sisa waktu menuju ${TARGET_LONG}`;
