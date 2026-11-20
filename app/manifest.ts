@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { BATCH, HEADING, ORG, TARGET_LONG, TARGET_TIME } from "@/lib/seo";
+import { PALETTE } from "@/lib/theme";
 
 // /manifest.webmanifest (PWA). Dibangun dari CONFIG supaya nama dan tanggalnya
 // sama dengan judul halaman; Next.js otomatis memasang <link rel="manifest">.
@@ -11,8 +12,8 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "id",
     start_url: "/",
     display: "standalone",
-    background_color: "#0b0f14",
-    theme_color: "#0b0f14",
+    background_color: PALETTE.dark.bg,
+    theme_color: PALETTE.dark.bg,
     categories: ["productivity", "utilities"],
     icons: [
       { src: "/icon-192.png", sizes: "192x192", type: "image/png" },

@@ -5,9 +5,7 @@ import { Globe } from "@/components/Globe";
 import InfoBar from "@/components/InfoBar";
 import GameDock from "@/components/games/GameDock";
 import { AnimatedThemeToggler } from "@/components/magicui/animated-theme-toggler";
-import { END_TARGET } from "@/lib/config";
-import { DESCRIPTION, FEATURES, HEADING, INTRO, TARGET_TIME } from "@/lib/seo";
-import { fmtDate } from "@/lib/time";
+import { DESCRIPTION, FEATURES, HEADING, INTRO, TARGET_LONG, TARGET_TIME } from "@/lib/seo";
 
 export const dynamic = "force-static";
 
@@ -28,7 +26,7 @@ export default function Page() {
         {HEADING}
       </h1>
       <p className="game-hide relative mb-6 text-sm text-[var(--dim)]">
-        {fmtDate(END_TARGET)} · {TARGET_TIME} waktu setempat
+        {TARGET_LONG} · {TARGET_TIME} waktu setempat
       </p>
       <div className="relative">
         <Countdown />

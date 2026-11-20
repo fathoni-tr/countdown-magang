@@ -1,26 +1,16 @@
-// Teks SEO dipakai bersama oleh metadata (layout.tsx), manifest, JSON-LD, dan
-// /llms.txt. Semua tanggal dibangun dari CONFIG supaya tidak ketinggalan kalau
-// tanggal selesai magang diubah.
+// Teks SEO dipakai bersama oleh metadata (layout.tsx), manifest, JSON-LD,
+// gambar link preview, dan /llms.txt. Semua tanggal dibangun dari CONFIG
+// supaya tidak ketinggalan kalau tanggal selesai magang diubah.
 import { CONFIG, END_TARGET } from "@/lib/config";
-
-const pad = (n: number) => String(n).padStart(2, "0");
+import { fmtDate, fmtShort, pad } from "@/lib/time";
 
 export const SITE_URL = CONFIG.SITE_URL;
 export const SITE_NAME = "Countdown Magang";
 export const REPO_URL = "https://github.com/fathoni-tr/countdown-magang";
 
 // "Jumat, 29 Januari 2027" dan "29 Januari 2027".
-export const TARGET_LONG = new Intl.DateTimeFormat("id-ID", {
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-}).format(END_TARGET);
-export const TARGET_SHORT = new Intl.DateTimeFormat("id-ID", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-}).format(END_TARGET);
+export const TARGET_LONG = fmtDate(END_TARGET);
+export const TARGET_SHORT = `${fmtShort(END_TARGET)} ${END_TARGET.getFullYear()}`;
 export const TARGET_TIME = `${pad(CONFIG.END_TARGET.hour)}.${pad(CONFIG.END_TARGET.minute)}`;
 const WORK_HOURS = `${pad(CONFIG.WORK_START.hour)}.${pad(CONFIG.WORK_START.minute)}–${pad(CONFIG.WORK_END.hour)}.${pad(CONFIG.WORK_END.minute)}`;
 
@@ -50,7 +40,9 @@ export const FEATURES = [
 ];
 
 const org = ORG.toLowerCase();
-export const KEYWORDS = [
+// Nama yang dipakai orang untuk mencari situs ini; ikut tampil sebagai
+// "Dikenal juga sebagai" di /llms.txt.
+export const SEARCH_NAMES = [
   "countdown magang",
   `countdown magang ${org}`,
   `countdown magang ${org} ${BATCH}`,
@@ -62,6 +54,9 @@ export const KEYWORDS = [
   "countdown intern",
   "intern countdown",
   "internship countdown",
+];
+export const KEYWORDS = [
+  ...SEARCH_NAMES,
   "hitung mundur magang",
   "hitung mundur selesai magang",
   "sisa waktu magang",
@@ -101,7 +96,7 @@ export const JSON_LD = {
       description: DESCRIPTION,
       abstract: INTRO,
       audience: { "@type": "Audience", audienceType: `Mahasiswa dan peserta magang ${ORG} ${BATCH}` },
-      image: `${SITE_URL}/opengraph-image.png`,
+      image: `${SITE_URL}/opengraph-image`,
       applicationCategory: "UtilitiesApplication",
       operatingSystem: "Any",
       browserRequirements: "Requires JavaScript",

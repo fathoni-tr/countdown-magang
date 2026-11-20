@@ -1,11 +1,6 @@
-import {
-  clientIp,
-  MAX_BODY_BYTES,
-  publish,
-  rateLimit,
-  subscribe,
-  validate,
-} from "@/lib/chat-bus";
+import { clientIp, MAX_BODY_BYTES, publish, rateLimit, subscribe } from "@/lib/chat/bus";
+import { validate } from "@/lib/chat/moderation";
+import type { ChatError } from "@/lib/chat/protocol";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,7 +13,7 @@ export const maxDuration = 300;
 const enc = new TextEncoder();
 
 /** Tolakan kecil seragam. no-store: jangan sampai proxy menyimpan 429/503. */
-const reject = (status: number, reason: string, extra?: Record<string, string>) =>
+const reject = (status: number, reason: ChatError, extra?: Record<string, string>) =>
   Response.json({ reason }, { status, headers: { "cache-control": "no-store", ...extra } });
 
 export function GET(req: Request) {
@@ -111,7 +106,7 @@ export async function POST(req: Request) {
   try {
     body = JSON.parse(raw);
   } catch {
-    return reject(400, "empty");
+    return reject(400, "bad-json");
   }
 
   const v = validate((body as { text?: unknown } | null)?.text);

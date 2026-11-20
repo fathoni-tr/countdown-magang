@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
-import { CONFIG } from "@/lib/config";
+import { SITE_URL } from "@/lib/seo";
 
 // /sitemap.xml: situs ini cuma satu halaman.
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [{ url: CONFIG.SITE_URL, lastModified: new Date(), changeFrequency: "daily", priority: 1 }];
+  return [{ url: SITE_URL, lastModified: new Date(), changeFrequency: "daily", priority: 1 }];
 }
