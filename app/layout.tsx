@@ -12,6 +12,7 @@ import {
   TARGET_LONG,
   TITLE,
 } from "@/lib/seo";
+import { PALETTE } from "@/lib/theme";
 import "./globals.css";
 
 const plex = IBM_Plex_Sans({
@@ -74,14 +75,14 @@ export const metadata: Metadata = {
 // interactiveWidget: papan ketik ponsel memperkecil viewport, bukan menutupi
 // halaman. Tanpa ini kolom tulis pesan (position: fixed) bisa tersembunyi di
 // belakang papan ketik, terutama di Safari iOS.
-// themeColor = --bg di globals.css (warna bilah browser di ponsel).
+// themeColor = --bg tiap tema (warna bilah browser di ponsel).
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   interactiveWidget: "resizes-content",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f7f9" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b0f14" },
+    { media: "(prefers-color-scheme: light)", color: PALETTE.light.bg },
+    { media: "(prefers-color-scheme: dark)", color: PALETTE.dark.bg },
   ],
 };
 

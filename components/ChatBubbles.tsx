@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { isChatMessage, MAX_LEN, type ChatError } from "@/lib/chat/protocol";
 
 const LIFE_MS = 5000;
 const MAX_ON_SCREEN = 15;
-const MAX_LEN = 120; // cermin dari MAX_LEN di lib/chat-bus.ts (server yang menentukan)
+const GAGAL = "Pesan tidak terkirim.";
 
 type Bubble = {
   id: string;
@@ -14,12 +15,21 @@ type Bubble = {
   wig: number; // durasi satu ayunan, detik
 };
 
-const TOLAKAN: Record<string, string> = {
+// Lengkap per ChatError: alasan baru di server wajib diberi teks di sini.
+const TOLAKAN: Record<ChatError, string> = {
   rate: "Sabar, satu pesan tiap 3 detik.",
   "too-long": `Maksimal ${MAX_LEN} karakter.`,
   "bad-word": "Pesannya kurang ramah, ganti dulu.",
   "too-large": `Maksimal ${MAX_LEN} karakter.`,
+  empty: GAGAL,
+  "bad-json": GAGAL,
+  "content-type": GAGAL,
+  origin: GAGAL,
+  busy: GAGAL,
 };
+
+const isChatError = (r: unknown): r is ChatError =>
+  typeof r === "string" && Object.hasOwn(TOLAKAN, r);
 
 export default function ChatBubbles() {
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
@@ -39,14 +49,13 @@ export default function ChatBubbles() {
     const timers = new Set<ReturnType<typeof setTimeout>>();
 
     const onMessage = (e: MessageEvent) => {
-      let m: { id: string; text: string };
+      let m: unknown;
       try {
         m = JSON.parse(e.data);
       } catch {
         return;
       }
-      // Data dari jaringan: pastikan bentuknya benar sebelum dirender.
-      if (typeof m?.id !== "string" || typeof m?.text !== "string") return;
+      if (!isChatMessage(m)) return;
 
       const b: Bubble = {
         id: m.id,
@@ -89,6 +98,14 @@ export default function ChatBubbles() {
     if (open) inputRef.current?.focus();
   }, [open]);
 
+  // Satu timer hapus-error saja: timer lama tidak boleh menghapus error baru.
+  const errTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  function tampilkanErr(msg: string) {
+    setErr(msg);
+    clearTimeout(errTimer.current);
+    errTimer.current = setTimeout(() => setErr(""), 3000);
+  }
+
   async function kirim() {
     const t = text.trim();
     if (!t) return;
@@ -101,12 +118,12 @@ export default function ChatBubbles() {
         body: JSON.stringify({ text: t }),
       });
       if (r.ok) return;
-      const { reason } = (await r.json().catch(() => ({}))) as { reason?: string };
-      setErr(TOLAKAN[reason ?? ""] ?? "Pesan tidak terkirim.");
+      const body: unknown = await r.json().catch(() => null);
+      const reason = (body as { reason?: unknown } | null)?.reason;
+      tampilkanErr(isChatError(reason) ? TOLAKAN[reason] : GAGAL);
     } catch {
-      setErr("Pesan tidak terkirim.");
+      tampilkanErr(GAGAL);
     }
-    setTimeout(() => setErr(""), 3000);
   }
 
   return (

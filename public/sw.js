@@ -1,8 +1,12 @@
 // ponytail: HTML dan data selalu ambil jaringan dulu, jadi deploy baru langsung
 // kelihatan tanpa hard reset. Cache cuma cadangan waktu offline. Aset ber-hash
 // di /_next/static isinya tidak pernah berubah, jadi aman diambil dari cache.
-const CACHE = "intern-countdown-v4";
-const OFFLINE = ["/", "/manifest.webmanifest", "/data/holidays-2026.json", "/data/holidays-2027.json"];
+//
+// Berkas libur (/data/holidays-*.json) sengaja tidak didaftar per tahun di sini:
+// halaman memuatnya di tiap kunjungan dan handler fetch di bawah menyimpannya,
+// jadi tahun baru di public/data ikut ter-cache tanpa mengubah berkas ini.
+const CACHE = "intern-countdown-v5";
+const OFFLINE = ["/", "/manifest.webmanifest"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(OFFLINE)).then(() => self.skipWaiting()));

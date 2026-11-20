@@ -31,7 +31,7 @@ deploy di Vercel.
 - `components/Globe.tsx` — globe `cobe` sebagai dekorasi latar (`pointer-events-none`).
 - `components/magicui/animated-theme-toggler.tsx` — toggle terang/gelap.
 - `components/InfoBar.tsx` — zona waktu perangkat, jam berjalan, info libur berikutnya.
-- PWA: `public/manifest.json`, ikon 192/512.
+- PWA: `app/manifest.ts` (→ `/manifest.webmanifest`), ikon 192/512.
 - `public/sw.js` — service worker **network-first**, `skipWaiting` + `claim`,
   reload sekali otomatis untuk pengunjung lama supaya tidak kena versi basi.
 - `@vercel/analytics` terpasang di `app/layout.tsx`.
@@ -67,7 +67,7 @@ mendengarkan, pesan hilang begitu saja — itu memang perilaku yang diinginkan.
   berkala. `EventSource` menyambung ulang sendiri; karena pesan cuma hidup 5 detik,
   paling buruk kehilangan satu-dua gelembung saat reconnect. Bisa diterima.
 - Kalau nanti terbukti pecah antar-instance, jalur upgrade-nya: ganti broadcast
-  in-memory dengan Pusher/Ably free tier — hanya file `lib/chat-bus.ts` yang berubah,
+  in-memory dengan Pusher/Ably free tier — hanya file `lib/chat/bus.ts` yang berubah,
   UI tidak tersentuh.
 
 ### File
@@ -114,7 +114,7 @@ ditimpa animasi.
 - Maksimal **120 karakter**. Dipotong di input, ditolak di server kalau lebih.
 - **Rate limit per IP**: 1 pesan / 3 detik. `Map<ip, timestamp>` di memori,
   dibersihkan berkala. Lebih cepat dari itu → `429`.
-- **Filter kata kasar**: 304 kata (ID + EN) di `lib/chat-bus.ts`, dikelompokkan:
+- **Filter kata kasar**: 304 kata (ID + EN) di `lib/chat/moderation.ts`, dikelompokkan:
   makian inti, hewan-untuk-menghina, setan/laknat, kecerdasan, status/penampilan,
   seksual, pelacuran, slur identitas, kotoran, singkatan/sensor, Inggris.
   Pesan yang
@@ -138,7 +138,7 @@ ditimpa animasi.
     memuat huruf x sendirian ("ukuran 10 x 5").
   - `gay`, `lesbi`, `waria` — istilah identitas netral, bukan hinaan.
 
-  Alasan tiap penolakan ditulis ulang sebagai komentar di `lib/chat-bus.ts`
+  Alasan tiap penolakan ditulis ulang sebagai komentar di `lib/chat/moderation.ts`
   supaya tidak ada yang menambahkannya kembali tanpa sadar.
 
   Uji jaring pengaman di `test-chat.ts`: kata & singkatan wajar → 0 tersaring

@@ -1,6 +1,6 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
-import { DESCRIPTION, FEATURES, HEADING, INTRO, KEYWORDS, REPO_URL, SITE_URL } from "@/lib/seo";
+import { DESCRIPTION, FEATURES, HEADING, INTRO, REPO_URL, SEARCH_NAMES, SITE_URL } from "@/lib/seo";
 
 // /llms.txt (https://llmstxt.org): ringkasan teks biasa untuk AI agent dan
 // crawler LLM yang tidak menjalankan JavaScript -- halaman utama nyaris kosong
@@ -20,7 +20,7 @@ const body = `# ${HEADING}
 
 ${INTRO} Sisa waktunya dihitung langsung di browser pengunjung (waktu setempat), jadi angka pastinya hanya terlihat dengan JavaScript.
 
-Dikenal juga sebagai: ${KEYWORDS.slice(0, 11).join(", ")}.
+Dikenal juga sebagai: ${SEARCH_NAMES.join(", ")}.
 
 ## Fitur
 

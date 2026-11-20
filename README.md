@@ -52,10 +52,9 @@ WORK_END:   { hour: 16, minute: 0 },
 WORK_DAYS:  [1, 2, 3, 4, 5],                                // 0 = Sunday
 ```
 
-Change the values and redeploy. The page title and the link-preview text are built from these values automatically. Also update:
+Change the values and redeploy. The page title, the link-preview text, and the link-preview image are built from these values automatically. Also update:
 
 - `ORG` (campus/company name, currently `ITPLN`), `BATCH` (cohort label in the heading, currently `2023`), `SITE_NAME`, and `REPO_URL` in [`lib/seo.ts`](lib/seo.ts) — they feed the page title, description, search keywords, JSON-LD, and `/llms.txt`.
-- the **link-preview image** `app/opengraph-image.png` (1200 × 630), which shows the target date. Its source is [`design/og-image.html`](design/og-image.html) — edit the date there, open it in Chrome at 1200 × 630 and capture a screenshot (instructions are at the top of the file). Keep the important content in the middle: WhatsApp crops small previews to a square. Update `app/opengraph-image.alt.txt` to match.
 - the holiday lists in [`public/data/holidays-<year>.json`](public/data/) for every year your countdown covers. Each entry looks like:
 
   ```json
@@ -71,6 +70,7 @@ app/
   page.tsx            Main page (static)
   layout.tsx          Fonts, metadata, JSON-LD, analytics
   manifest.ts         PWA manifest
+  opengraph-image.tsx Link-preview image (1200 × 630, built from config)
   llms.txt/route.ts   Plain-text summary for AI agents
   robots.ts, sitemap.ts
   globals.css         Theme colours and all game styles
@@ -85,12 +85,16 @@ components/
 lib/
   config.ts           Dates and working hours — the single source of truth
   seo.ts              Title, description, keywords, JSON-LD (built from config)
+  theme.ts            Theme colours for metadata, manifest, and the preview image
   schedule.ts         Time-left calculations
   holidays.ts         Loads public/data/holidays-*.json
   quotes.ts           Quote sets by mood and weekday
-  chat-bus.ts         In-memory broadcast, rate limit, word filter
+  chat/protocol.ts    Chat contract shared by server and client (limits, error reasons)
+  chat/bus.ts         In-memory broadcast and rate limit
+  chat/moderation.ts  Message cleanup and word filter (server-only)
   games.ts            Pure game logic (no React), covered by tests
   words.ts            Furdle word lists
+assets/fonts/         Fonts for the preview image (OFL)
 public/
   data/               Holiday lists
   sw.js               Service worker (network-first)
