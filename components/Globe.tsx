@@ -9,7 +9,11 @@ const GLOBE_CONFIG: COBEOptions = {
   width: 800,
   height: 800,
   onRender: () => {},
-  devicePixelRatio: 2,
+  // Fragment shader cobe berat (dua lintasan, loop per piksel) dan globe cuma
+  // dekorasi berlatar redup. DPR 2 = 4x piksel per frame dan membuat flip clock
+  // ikut tersendat karena GPU-nya dipakai berdua. DPR 1 sudah cukup tajam
+  // untuk titik-titik peta.
+  devicePixelRatio: 1,
   phi: 0,
   theta: 0.3,
   dark: 0,
@@ -70,8 +74,8 @@ export function Globe({
     (state: Record<string, number>) => {
       if (!pointerInteracting.current) phi += 0.005;
       state.phi = phi + r;
-      state.width = width * 2;
-      state.height = width * 2;
+      state.width = width;
+      state.height = width;
     },
     [r],
   );
@@ -88,8 +92,8 @@ export function Globe({
 
     const globe = createGlobe(canvasRef.current!, {
       ...config,
-      width: width * 2,
-      height: width * 2,
+      width,
+      height: width,
       onRender,
     });
 
