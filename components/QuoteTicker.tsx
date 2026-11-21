@@ -29,8 +29,10 @@ export default function QuoteTicker() {
         <TextAnimate
           key={`${q.slot}-${q.i}`}
           animation="blurInUp"
-          by="character"
+          by="word"
           delay={0.1}
+          stagger={0.07}
+          duration={0.45}
           className="text-pretty text-lg italic text-[var(--dim)] sm:text-2xl"
         >
           {quoteAt(q.slot, q.i)}
