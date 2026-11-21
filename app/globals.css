@@ -20,7 +20,7 @@
 :root[data-theme="dark"] {
   --bg: #0b0f14;
   --fg: #eef2f6;
-  --dim: #94a1ae;
+  --dim: #cbd5e1;
   --card: #141b23;
   --accent: #6d9bff;
   --line: #232d38;
@@ -654,4 +654,14 @@ body {
   100% {
     transform: translate(0, 0);
   }
+}
+
+/* Mode gelap: globe terang di belakang teks bikin kontras turun. Redupkan globe
+   dan beri bayangan tipis pada teks sekunder. */
+:root[data-theme="dark"] .game-hide.opacity-45 {
+  opacity: 0.22;
+}
+:root[data-theme="dark"] main p,
+:root[data-theme="dark"] main span {
+  text-shadow: 0 1px 6px rgb(0 0 0 / 0.6);
 }
